@@ -2,3 +2,5 @@ node_modules/
 dist/
 .integration/
 *.log
+
+ecosystem-source/
