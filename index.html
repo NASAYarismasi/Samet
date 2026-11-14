@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARES — Astronot Kol ve Bilek Terminali</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>ARES · Astronot Bilek Terminali</h1>
+    <p>Klavyeden <strong>[ALT]</strong> tuşuna basarak astronotun kolunu kaldırıp saate bakmasını sağlayabilirsiniz.</p>
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button id="wrist-open">🚀 3D Görünümü Başlat (Alt)</button>
+    </div>
+    <div style="margin-top:30px; font-size:13px; color:#8ba093; line-height:1.6;">
+      <p>• <strong>[ALT] Tuşu:</strong> Kolu kaldırıp saate bakar / tekrar basıldığında kolu indirir.</p>
+      <p>• <strong>[ESC] Tuşu:</strong> Sahneyi kapatır.</p>
+      <p>• Ekranda gerçek zamanlı saat (HH:MM:SS), canlı ECG nabız dalgası ve astronot giysisi telemetrisi akar.</p>
+    </div>
+  </main>
+
+  <dialog id="wrist-dialog" aria-label="Birinci şahıs astronot bilek ekranı">
+    <div id="wrist-scene"></div>
+    <button id="wrist-close" class="scene-menu">← Menüye Dön (ESC)</button>
+    <div id="model-status" role="status">Astronot modeli yükleniyor…</div>
+    <button id="model-retry" hidden>Modeli tekrar yükle</button>
+    <button id="mobile-wrist">Bileğe Bak (Alt)</button>
+  </dialog>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

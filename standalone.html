@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARES - The Expanse Astronot Kol ve Bilek Terminali</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background-color: #0b0e14;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    /* UI Göstergeleri ve Kontroller */
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+    }
+    .hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .badge {
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      padding: 10px 16px;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fb923c;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .hud-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .key-hint {
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(249, 115, 22, 0.5);
+      padding: 12px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+    .key-badge {
+      background: #ea580c;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+      border: 1px solid #fed7aa;
+    }
+    .hint-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffedd5;
+      letter-spacing: 0.5px;
+    }
+    .btn-action {
+      background: #1e293b;
+      color: #f97316;
+      border: 1px solid #f97316;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      background: #ea580c;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(234, 88, 12, 0.5);
+    }
+  </style>
+
+  <!-- Three.js (ES Module CDN) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+
+  <div class="ui-layer">
+    <div class="hud-header">
+      <div class="badge">
+        <div class="title">ARES // EVA-01 VAC-SUIT TERMINAL</div>
+        <div class="subtitle">THE EXPANSE BİLEK TELEMETRİ SİSTEMİ</div>
+      </div>
+      <button class="btn-action" id="btn-toggle">Bileğe Bak / Saati İndir (ALT)</button>
+    </div>
+
+    <div class="hud-footer">
+      <div class="key-hint">
+        <span class="key-badge">ALT</span>
+        <span class="hint-text">Tuşuna basarak kolunu kaldırıp canlı saate ve telemetriye bakabilirsin</span>
+      </div>
+      <div class="badge">
+        <div class="subtitle" style="color:#4ade80;">✔ SİNYAL: ROCINANTE // AKTİF</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    // ==========================================
+    // 1. SES SENTEZLEYİCİ (Pnömatik Giysi Sesi)
+    // ==========================================
+    function playSuitServoSound(raising) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'sawtooth';
+
+        if (raising) {
+          osc.frequency.setValueAtTime(110, now);
+          osc.frequency.exponentialRampToValueAtTime(260, now + 0.28);
+        } else {
+          osc.frequency.setValueAtTime(230, now);
+          osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+        }
+
+        oscGain.gain.setValueAtTime(0.035, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(600, now);
+
+        // Pnömatik hava tıslaması (White noise)
+        const bufferSize = ctx.sampleRate * 0.25;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1300, now);
+        noiseFilter.Q.setValueAtTime(3, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.03, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+        osc.connect(filter).connect(oscGain).connect(ctx.destination);
+        whiteNoise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.36);
+        whiteNoise.start(now);
+        whiteNoise.stop(now + 0.3);
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // 2. 60 FPS CANLI BİLEK DOKUSU (CANVAS 2D)
+    // ==========================================
+    const terminalCanvas = document.createElement('canvas');
+    terminalCanvas.width = 1152;
+    terminalCanvas.height = 710;
+    const tCtx = terminalCanvas.getContext('2d');
+
+    const texture = new THREE.CanvasTexture(terminalCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    let ecgPhase = 0;
+    let commsPhase = 0;
+    const ecgHistory = new Array(80).fill(25);
+
+    function drawSuitWireframe(ctx, x, y, scale) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#f97316';
+      ctx.shadowBlur = 8;
+
+      ctx.beginPath();
+      ctx.ellipse(34, 16, 12, 11, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#fed7aa';
+      ctx.lineWidth = 1.2;
+      ctx.arc(34, 15, 8, -Math.PI * 0.8, -Math.PI * 0.2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2;
+      ctx.moveTo(22, 28); ctx.lineTo(46, 28); ctx.lineTo(42, 60); ctx.lineTo(26, 60);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.strokeRect(30, 36, 8, 12);
+
+      // Sol ve Sağ Kol
+      ctx.beginPath();
+      ctx.moveTo(21, 30); ctx.lineTo(11, 48); ctx.lineTo(8, 62); ctx.lineTo(13, 64); ctx.lineTo(17, 52); ctx.lineTo(23, 38);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(47, 30); ctx.lineTo(57, 48); ctx.lineTo(60, 62); ctx.lineTo(55, 64); ctx.lineTo(51, 52); ctx.lineTo(45, 38);
+      ctx.stroke();
+
+      // Aktif saat noktası
+      const blink = Math.sin(Date.now() * 0.006) > 0;
+      ctx.fillStyle = blink ? '#ffedd5' : '#ea580c';
+      ctx.fillRect(55, 52, 7, 9);
+
+      // Bacaklar
+      ctx.beginPath();
+      ctx.moveTo(26, 61); ctx.lineTo(24, 88); ctx.lineTo(19, 105); ctx.lineTo(29, 105); ctx.lineTo(31, 88); ctx.lineTo(33, 61);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(42, 61); ctx.lineTo(44, 88); ctx.lineTo(49, 105); ctx.lineTo(39, 105); ctx.lineTo(37, 88); ctx.lineTo(35, 61);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function updateTerminalTexture() {
+      const w = terminalCanvas.width;
+      const h = terminalCanvas.height;
+
+      tCtx.fillStyle = '#07090d';
+      tCtx.fillRect(0, 0, w, h);
+
+      // Çerçeve & Köşe Vurguları
+      tCtx.strokeStyle = '#f97316';
+      tCtx.lineWidth = 3;
+      tCtx.shadowColor = 'rgba(249, 115, 22, 0.6)';
+      tCtx.shadowBlur = 14;
+      tCtx.strokeRect(10, 10, w - 20, h - 20);
+
+      const corner = 30;
+      tCtx.lineWidth = 6;
+      tCtx.beginPath(); tCtx.moveTo(10, 10 + corner); tCtx.lineTo(10, 10); tCtx.lineTo(10 + corner, 10); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(w - 10 - corner, 10); tCtx.lineTo(w - 10, 10); tCtx.lineTo(w - 10, 10 + corner); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(10, h - 10 - corner); tCtx.lineTo(10, h - 10); tCtx.lineTo(10 + corner, h - 10); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(w - 10 - corner, h - 10); tCtx.lineTo(w - 10, h - 10); tCtx.lineTo(w - 10, h - 10 - corner); tCtx.stroke();
+      tCtx.shadowBlur = 0;
+
+      // Scanline çizgileri
+      tCtx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      for (let y = 10; y < h - 10; y += 4) {
+        tCtx.fillRect(10, y, w - 20, 1.5);
+      }
+
+      // 1. ÜST BAŞLIK (Header)
+      tCtx.fillStyle = 'rgba(28, 34, 48, 0.7)';
+      tCtx.fillRect(20, 20, w - 40, 48);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.3)';
+      tCtx.lineWidth = 1.5;
+      tCtx.strokeRect(20, 20, w - 40, 48);
+
+      const pingBlink = Math.sin(Date.now() * 0.005) > 0;
+      tCtx.fillStyle = pingBlink ? '#22c55e' : '#15803d';
+      tCtx.beginPath();
+      tCtx.arc(42, 44, 7, 0, Math.PI * 2);
+      tCtx.fill();
+
+      tCtx.font = 'bold 18px "Courier New", monospace';
+      tCtx.fillStyle = '#fdba74';
+      tCtx.fillText('ARES MARK-IV // EVA WRIST TERMINAL', 60, 50);
+
+      tCtx.font = 'bold 16px "Courier New", monospace';
+      tCtx.fillStyle = '#ea580c';
+      tCtx.fillText('SOL: 418.6', w - 180, 50);
+
+      // 2. BÜYÜK DİJİTAL SAAT (CANLI ZAMAN)
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const millis = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0');
+      const colonBlink = Math.floor(Date.now() / 500) % 2 === 0;
+
+      tCtx.fillStyle = 'rgba(15, 20, 30, 0.85)';
+      tCtx.fillRect(20, 80, 420, 220);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      tCtx.lineWidth = 2;
+      tCtx.strokeRect(20, 80, 420, 220);
+
+      tCtx.font = 'bold 14px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.fillText('● CANLI NORMAL SAAT // LOCAL TIME', 35, 110);
+
+      tCtx.font = 'bold 64px "Courier New", monospace';
+      tCtx.fillStyle = '#ffedd5';
+      tCtx.shadowColor = '#f97316';
+      tCtx.shadowBlur = 18;
+      tCtx.fillText(`${hours}${colonBlink ? ':' : ' '}${minutes}:${seconds}`, 35, 185);
+
+      tCtx.font = 'bold 26px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.shadowBlur = 8;
+      tCtx.fillText(`.${millis}`, 355, 185);
+      tCtx.shadowBlur = 0;
+
+      const months = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+      const days = ['PAZAR', 'PAZARTESİ', 'SALI', 'ÇARŞAMBA', 'PERŞEMBE', 'CUMA', 'CUMARTESİ'];
+      tCtx.font = 'bold 15px "Courier New", monospace';
+      tCtx.fillStyle = '#fdba74';
+      tCtx.fillText(`${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} // ${days[now.getDay()]}`, 35, 230);
+
+      tCtx.font = '13px "Courier New", monospace';
+      tCtx.fillStyle = '#9ca3af';
+      tCtx.fillText(`UTC: ${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')} ZULU`, 35, 265);
+
+      // 3. GİYSİ BÜTÜNLÜĞÜ
+      tCtx.fillStyle = 'rgba(15, 20, 30, 0.85)';
+      tCtx.fillRect(455, 80, 240, 220);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      tCtx.strokeRect(455, 80, 240, 220);
+
+      tCtx.font = 'bold 13px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.fillText('GİYSİ SIZDIRMAZLIK', 485, 108);
+
+      drawSuitWireframe(tCtx, 535, 118, 1.25);
+
+      tCtx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+      tCtx.fillRect(475, 260, 200, 26);
+      tCtx.strokeStyle = '#22c55e';
+      tCtx.lineWidth = 1;
+      tCtx.strokeRect(475, 260, 200, 26);
+      tCtx.font = 'bold 12px "Courier New", monospace';
+      tCtx.fillStyle = '#4ade80';
+      tCtx.fillText('✔ 100% NOMİNAL BASINÇ', 490, 278);
+
+      // 4. YAŞAM DESTEK (O2, Su, Batarya)
+      tCtx.fillStyle = 'rgba(15, 20, 30, 0.85)';
+      tCtx.fillRect(710, 80, 420, 220);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      tCtx.strokeRect(710, 80, 420, 220);
+
+      tCtx.font = 'bold 14px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.fillText('YAŞAM DESTEK VERİLERİ', 730, 108);
+
+      tCtx.font = 'bold 13px "Courier New", monospace';
+      tCtx.fillStyle = '#e5e7eb';
+      tCtx.fillText('OKSİJEN (O₂)', 730, 140);
+      tCtx.fillStyle = '#fed7aa';
+      tCtx.fillText('96.4%', 1070, 140);
+
+      tCtx.fillStyle = '#1c2230';
+      tCtx.fillRect(730, 150, 380, 16);
+      tCtx.fillStyle = '#f97316';
+      tCtx.fillRect(730, 150, (380 * 96.4) / 100, 16);
+      tCtx.strokeStyle = '#475569';
+      tCtx.strokeRect(730, 150, 380, 16);
+
+      tCtx.fillStyle = '#e5e7eb';
+      tCtx.fillText('SU REZERVİ:', 730, 200);
+      tCtx.fillStyle = '#38bdf8';
+      tCtx.fillText('85 BR', 860, 200);
+
+      tCtx.fillStyle = '#e5e7eb';
+      tCtx.fillText('YİYECEK:', 950, 200);
+      tCtx.fillStyle = '#eab308';
+      tCtx.fillText('70 BR', 1050, 200);
+
+      tCtx.fillStyle = '#e5e7eb';
+      tCtx.fillText('BATARYA:', 730, 245);
+      tCtx.fillStyle = '#4ade80';
+      tCtx.fillText('100% [28.4V]', 860, 245);
+
+      for (let i = 0; i < 8; i++) {
+        tCtx.fillStyle = '#22c55e';
+        tCtx.fillRect(960 + i * 18, 235, 14, 16);
+      }
+
+      tCtx.font = '11px "Courier New", monospace';
+      tCtx.fillStyle = '#9ca3af';
+      tCtx.fillText('SICAKLIK: 21.4°C  |  KABİN: 101.3 kPa', 730, 280);
+
+      // 5. KALP RİTMİ (ECG) & TELSİZ SESİ
+      tCtx.fillStyle = 'rgba(15, 20, 30, 0.85)';
+      tCtx.fillRect(20, 315, 540, 180);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      tCtx.strokeRect(20, 315, 540, 180);
+
+      tCtx.font = 'bold 14px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.fillText('BİYOMETRİK // CANLI KALP RİTMİ (ECG)', 35, 345);
+      tCtx.fillStyle = '#ffedd5';
+      tCtx.fillText('76 BPM (STABİL)', 430, 345);
+
+      ecgPhase++;
+      let nextVal = 50;
+      const p = ecgPhase % 30;
+      if (p === 8) nextVal = 35;
+      else if (p === 9) nextVal = 10;
+      else if (p === 10) nextVal = 90;
+      else if (p === 11) nextVal = 50;
+      else if (p === 14) nextVal = 58;
+
+      ecgHistory.push(nextVal + (Math.random() * 3 - 1.5));
+      ecgHistory.shift();
+
+      tCtx.strokeStyle = '#f97316';
+      tCtx.lineWidth = 2.5;
+      tCtx.shadowColor = '#f97316';
+      tCtx.shadowBlur = 10;
+      tCtx.beginPath();
+      for (let i = 0; i < ecgHistory.length; i++) {
+        const px = 35 + (i / (ecgHistory.length - 1)) * 510;
+        const py = 370 + (ecgHistory[i] * 100) / 100;
+        if (i === 0) tCtx.moveTo(px, py);
+        else tCtx.lineTo(px, py);
+      }
+      tCtx.stroke();
+      tCtx.shadowBlur = 0;
+
+      // Telsiz dalgası
+      tCtx.fillStyle = 'rgba(15, 20, 30, 0.85)';
+      tCtx.fillRect(580, 315, 550, 180);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      tCtx.strokeRect(580, 315, 550, 180);
+
+      tCtx.font = 'bold 14px "Courier New", monospace';
+      tCtx.fillStyle = '#fb923c';
+      tCtx.fillText('SİNYAL & TELSİZ // KANAL 07', 595, 345);
+      tCtx.fillStyle = '#4ade80';
+      tCtx.fillText('ŞİFRELİ [SECURE]', 1000, 345);
+
+      commsPhase += 0.12;
+      tCtx.strokeStyle = '#38bdf8';
+      tCtx.lineWidth = 2;
+      tCtx.shadowColor = '#38bdf8';
+      tCtx.shadowBlur = 8;
+      tCtx.beginPath();
+      for (let x = 0; x < 520; x += 4) {
+        const wave = Math.sin(x * 0.08 + commsPhase) * Math.cos(x * 0.03 + commsPhase * 0.5) * 28;
+        const py = 425 + wave;
+        if (x === 0) tCtx.moveTo(595 + x, py);
+        else tCtx.lineTo(595 + x, py);
+      }
+      tCtx.stroke();
+      tCtx.shadowBlur = 0;
+
+      tCtx.font = '12px "Courier New", monospace';
+      tCtx.fillStyle = '#94a3b8';
+      tCtx.fillText('İLETİŞİM HATTI: ROCINANTE // YER KONTROL FREKANSI', 595, 475);
+
+      // 6. ALT BANT (Görev ve Kısayol)
+      tCtx.fillStyle = 'rgba(28, 34, 48, 0.9)';
+      tCtx.fillRect(20, 510, w - 40, 180);
+      tCtx.strokeStyle = 'rgba(249, 115, 22, 0.3)';
+      tCtx.strokeRect(20, 510, w - 40, 180);
+
+      tCtx.font = 'bold 15px "Courier New", monospace';
+      tCtx.fillStyle = '#ea580c';
+      tCtx.fillText('AKTİF GÖREV: ARES-1 // İLK KOLONİ', 40, 545);
+
+      tCtx.font = '15px "Courier New", monospace';
+      tCtx.fillStyle = '#e2e8f0';
+      tCtx.fillText('HEDEF: Bilek terminali ve yaşam destek kontrolü', 40, 580);
+
+      tCtx.fillStyle = 'rgba(249, 115, 22, 0.12)';
+      tCtx.fillRect(40, 610, w - 80, 55);
+      tCtx.strokeStyle = '#f97316';
+      tCtx.lineWidth = 1.5;
+      tCtx.strokeRect(40, 610, w - 80, 55);
+
+      tCtx.font = 'bold 16px "Courier New", monospace';
+      tCtx.fillStyle = '#ffedd5';
+      tCtx.fillText('⌨  [ALT] TUŞUNA BASARAK KOLUNUZU KALDIRIP SAATE BAKABİLİRSİNİZ', 60, 644);
+
+      texture.needsUpdate = true;
+    }
+
+    // ==========================================
+    // 3. THREE.JS 3D SAHNE & ASTRONOT KOLU
+    // ==========================================
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x1a2128);
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x9b7052, 6, 40);
+
+    const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.02, 90);
+    camera.position.y = 1.65;
+    scene.add(camera);
+
+    // Işıklandırma
+    scene.add(new THREE.HemisphereLight(0xe6efff, 0x73503b, 3));
+    const sun = new THREE.DirectionalLight(0xffdfb1, 3);
+    sun.position.set(-4, 7, 3);
+    scene.add(sun);
+
+    // Mars Yüzeyi Zemin & Kayalar
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(100, 100),
+      new THREE.MeshStandardMaterial({ color: 0x966448, roughness: 1 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    for (let i = 0; i < 45; i++) {
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.1 + (i % 5) * 0.04, 0),
+        new THREE.MeshStandardMaterial({ color: i % 2 ? 0x694f41 : 0x82604a, roughness: 1 })
+      );
+      rock.position.set(Math.sin(i * 17) * 12, 0.08, -2 - i * 0.6);
+      rock.scale.y = 0.6;
+      scene.add(rock);
+    }
+
+    // Astronot Kol Grubu (Kameraya bağlı)
+    const rig = new THREE.Group();
+    camera.add(rig);
+
+    // KINEMATİK POZLAR (Saate bakış koordinatları)
+    const hiddenPos = new THREE.Vector3(-0.35, -0.92, -0.62);
+    const hiddenRot = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.25, -0.25, -0.55));
+
+    const shownPos = new THREE.Vector3(-0.25, -0.20, -0.56);
+    const shownRot = new THREE.Quaternion().setFromEuler(new THREE.Euler(1.38, -0.08, 0.28));
+
+    rig.position.copy(hiddenPos);
+    rig.quaternion.copy(hiddenRot);
+
+    // ==========================================
+    // 4. ASTRONOT KOLU & GİYSİ MODELİ (PROSEDÜREL 3D)
+    // ==========================================
+    const suitMaterial = new THREE.MeshStandardMaterial({
+      color: 0xd8d6c6,
+      roughness: 0.85,
+      metalness: 0.1
+    });
+
+    const sealRingMaterial = new THREE.MeshStandardMaterial({
+      color: 0x334155,
+      metalness: 0.8,
+      roughness: 0.2
+    });
+
+    // Ön kol (Forearm)
+    const armMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.065, 0.075, 0.42, 24),
+      suitMaterial
+    );
+    armMesh.rotation.z = Math.PI / 2;
+    armMesh.position.set(0.12, 0, 0.012);
+    rig.add(armMesh);
+
+    // Giysi dikiş halkaları
+    for (const px of [0.02, 0.08, 0.22]) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.068, 0.005, 12, 32),
+        sealRingMaterial
+      );
+      ring.rotation.y = Math.PI / 2;
+      ring.position.set(px, 0, 0.012);
+      rig.add(ring);
+    }
+
+    // Omuz / Gövdeye uzanan giysi kol uzantısı (Sleeve)
+    const sleeve = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.067, 0.095, 0.95, 20),
+      suitMaterial
+    );
+    sleeve.rotation.z = Math.PI / 2;
+    sleeve.position.set(-0.48, 0, 0.012);
+    rig.add(sleeve);
+
+    // Astronot Eldiveni (Glove)
+    const glove = new THREE.Mesh(
+      new THREE.BoxGeometry(0.11, 0.09, 0.07),
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 })
+    );
+    glove.position.set(0.38, 0, 0.012);
+    rig.add(glove);
+
+    // Bilek Terminali Kasa ve Ekranı (14 x 9 cm)
+    const terminal = new THREE.Group();
+    terminal.position.set(0.17, 0.078, 0.015);
+    terminal.rotation.x = -Math.PI / 2;
+    rig.add(terminal);
+
+    // Titanyum Kasa
+    const caseMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.09, 0.014),
+      new THREE.MeshStandardMaterial({ color: 0x20242e, metalness: 0.5, roughness: 0.5 })
+    );
+    terminal.add(caseMesh);
+
+    // Parlayan Canlı Ekran
+    const screen = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.130, 0.082),
+      new THREE.MeshBasicMaterial({ map: texture })
+    );
+    screen.position.z = 0.0076;
+    terminal.add(screen);
+
+    // Bilek Kayışları
+    for (const x of [0.125, 0.215]) {
+      const band = new THREE.Mesh(
+        new THREE.TorusGeometry(0.072, 0.004, 8, 36),
+        new THREE.MeshStandardMaterial({ color: 0x262b32, roughness: 0.9 })
+      );
+      band.rotation.y = Math.PI / 2;
+      band.position.set(x, 0, 0.015);
+      rig.add(band);
+    }
+
+    // ==========================================
+    // 5. ANİMASYON DÖNGÜSÜ & ALT TUŞU
+    // ==========================================
+    let target = 0; // 0: İndirilmiş, 1: Saate bakıyor
+    let amount = 0;
+    let lastTime = performance.now();
+
+    function toggleWatch() {
+      target = target === 1 ? 0 : 1;
+      playSuitServoSound(target === 1);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === 'Alt') {
+        e.preventDefault();
+        toggleWatch();
+      }
+    });
+
+    document.getElementById('btn-toggle').addEventListener('click', toggleWatch);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Ana Render ve Animasyon Döngüsü (60 FPS)
+    function animate(time) {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+
+      // Yumuşak geçiş hızı
+      const speed = 1 - Math.exp(-dt * 9.5);
+      amount += (target - amount) * speed;
+
+      // Temel İnterpolasyon
+      const currentPos = new THREE.Vector3().lerpVectors(hiddenPos, shownPos, amount);
+
+      // Kavisli Kol Hareketi Yayı (Parabolik kol kaldırma)
+      const arcT = Math.sin(amount * Math.PI);
+      currentPos.y += arcT * 0.055;
+      currentPos.x -= arcT * 0.035;
+      currentPos.z += arcT * 0.025;
+
+      // Astronot elinin canlı nefes süzülmesi (Idle Sway)
+      if (amount > 0.96 && target === 1) {
+        const breathY = Math.sin(time * 0.0018) * 0.0022;
+        const breathX = Math.cos(time * 0.0014) * 0.0015;
+        currentPos.y += breathY;
+        currentPos.x += breathX;
+      }
+
+      rig.position.copy(currentPos);
+      rig.quaternion.slerpQuaternions(hiddenRot, shownRot, amount);
+
+      if (amount > 0.96 && target === 1) {
+        const breathRoll = Math.sin(time * 0.0015) * 0.005;
+        rig.rotation.z += breathRoll;
+      }
+
+      rig.visible = amount > 0.005;
+
+      // Ekran dokusunu güncelle
+      updateTerminalTexture();
+
+      renderer.render(scene, camera);
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
