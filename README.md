@@ -29,3 +29,5 @@ Alt: kol ekranını aç/kapat. Terminal açıkken 1: sağlık, 2: yemek, 3: su. 
 
 ### Güncel kol ekranı
 Alt ile açılan tek görünümde Batarya, Su, Oksijen, Yiyecek ve Aktif Görev birlikte gösterilir. Önceki sağlık sekmesi ve 1/2/3 sekme kısayolları kaldırıldı. Batarya bu prototipte mevcut ortak enerji rezervini gösterir; bağımsız batarya simülasyonu içermez. Aktif görev mevcut aşamadan okunur.
+
+Kol terminali masaüstünde yataydır ve ekranın alt bölümünde bileğin üstünde görünür. Alt ile açılırken aşağıdan yükselir; Alt/Esc ile kapanır. Dar telefon ekranlarında okunabilirlik için içerik alt alta geçer. Bu görünüm hâlâ CSS prototipidir; 3D karakter koluna bağlanmamıştır.
