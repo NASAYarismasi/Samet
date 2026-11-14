@@ -19,3 +19,10 @@ Ana menü, dört görev aşaması, astronot kartları ve tarayıcıda otomatik k
 - STL kemiksizdir. Bu sürüm rijit kol hareketi kullanan birinci şahıs prototipidir; tam karakter iskeleti, yürüme ve mouse ile çevreye bakma henüz yoktur.
 - Model yüklenemediğinde hata ve yeniden deneme düğmesi gösterilir. Sahne menüye dönülünce animasyonu durdurur; sayfa kapanırken GPU kaynakları temizlenir.
 - Model kaynağı ve yapılan dönüşümler public/models/README.md içindedir.
+
+## Yeni terminal tasarımı
+Kullanıcının sağladığı orijinal kod reference/user-terminal.html dosyasında korunur. terminal-template.html bu HTML'nin ARES oyun verilerine uyarlanmış sürümüdür. Orijinal turuncu telemetri, astronot şeması, dalga izleri ve tarama çizgileri korunur; kurgu seri fraksiyonları ve bağımsız sızıntı/itici düğmeleri çıkarılır. Oksijen, su, yiyecek, batarya ve görev alanları oyun durumundan okunur. Dalga izleri dekoratiftir; gerçek sağlık/iletişim simülasyonu değildir.
+
+Tailwind yerelde derlenir; çalışma anında Tailwind CDN kullanılmaz. HTML, html2canvas ile kaplamaya çevrilip gerçek 3D bilek cihazına uygulanır. Fiziksel kasa 14×9×1,4 cm; ön kolun üstüne iki kayışla oturur. Alt hareketi artık ön kolu döndürerek saatin üstüne bakma pozuna getirir. STL hâlâ kemiksizdir; hareket ayrılmış ön kol grubuna uygulanır.
+
+Ana menüde yatay gezinme ve tek görünüm kullanılır: ana menü, görevler ve ekip birbirinden ayrı gösterilir. Üretim derlemesi terminal CSS'sini otomatik yeniler; terminal şablonunu geliştirirken npm run terminal:css ile stiller yenilenebilir.

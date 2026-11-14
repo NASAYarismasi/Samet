@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { createTerminalTexture } from './terminal-texture.js';
 
 // Z-up, T-pose STL has no bones. Retain its actual positive-X arm triangles.
 export function extractArm(source) {
   const data=source.attributes.position,positions=[],scale=1.8/74.2626838684082;
-  for(let i=0;i<data.count;i+=3)if([0,1,2].every(j=>data.getX(i+j)>12 && (data.getZ(i+j)+37.13139343261719)*scale>1.19 && (data.getZ(i+j)+37.13139343261719)*scale<1.47)){
-    for(let j=0;j<3;j++)positions.push(data.getX(i+j)*scale,(data.getZ(i+j)+37.13139343261719)*scale,-data.getY(i+j)*scale);
+  for(let i=0;i<data.count;i+=3)if([0,1,2].every(j=>data.getX(i+j)>16.5 && (data.getZ(i+j)+37.13139343261719)*scale>1.19 && (data.getZ(i+j)+37.13139343261719)*scale<1.47)){
+    for(let j=0;j<3;j++)positions.push(data.getX(i+j)*scale-.40,(data.getZ(i+j)+37.13139343261719)*scale-1.32,-data.getY(i+j)*scale-.09);
   }
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.computeVertexNormals();return geometry;
@@ -24,13 +25,21 @@ export function createWristScene(host,getData){
     rock.position.set(Math.sin(i*17)*12,.08,-2-i*.6);rock.scale.y=.6;scene.add(rock);
   }
   const rig=new THREE.Group();camera.add(rig);
-  const hidden=new THREE.Vector3(-.65,-2.0,-.85),shown=new THREE.Vector3(-.65,-1.50,-.95);rig.position.copy(hidden);
-  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=512;
-  const ctx=canvas.getContext('2d'),texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
-  const terminal=new THREE.Group();terminal.position.set(.60,1.31,.205);terminal.rotation.set(-.12,.08,0);rig.add(terminal);
-  terminal.add(new THREE.Mesh(new THREE.BoxGeometry(.25,.135,.035),new THREE.MeshStandardMaterial({color:0x283737,metalness:.35,roughness:.65})));
-  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.226,.113),new THREE.MeshBasicMaterial({map:texture}));screen.position.z=.018;terminal.add(screen);
-  const strap=new THREE.Mesh(new THREE.BoxGeometry(.065,.17,.12),new THREE.MeshStandardMaterial({color:0x354345}));strap.position.set(.60,1.31,.14);rig.add(strap);
+  const hidden=new THREE.Vector3(-.32,-.85,-.66),shown=new THREE.Vector3(-.30,-.21,-.68);rig.position.copy(hidden);
+  const hiddenRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(.2,-.2,-.5));
+  const shownRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(1.35,0,.30));
+  const surface=document.createElement('canvas');surface.width=1152;surface.height=710;const texture=new THREE.CanvasTexture(surface);texture.colorSpace=THREE.SRGBColorSpace;
+  const terminal=new THREE.Group();terminal.position.set(.17,.080,.015);terminal.rotation.x=-Math.PI/2;rig.add(terminal);
+  // 14 x 9 cm: case follows the forearm axis and stays within its width.
+  terminal.add(new THREE.Mesh(new THREE.BoxGeometry(.14,.09,.014),new THREE.MeshStandardMaterial({color:0x20242e,metalness:.35,roughness:.65})));
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.130,.082),new THREE.MeshBasicMaterial({map:texture}));screen.position.z=.0072;terminal.add(screen);
+  const strap=new THREE.Group();
+  for(const x of [.125,.215]){
+    const band=new THREE.Mesh(new THREE.TorusGeometry(.060,.004,8,36),new THREE.MeshStandardMaterial({color:0x262b32,roughness:.9}));
+    band.rotation.y=Math.PI/2;band.scale.y=.90;band.position.set(x,0,.015);strap.add(band);
+  }
+  rig.add(strap);
+  const display=createTerminalTexture(canvas=>{surface.getContext("2d").drawImage(canvas,0,0,1152,710);texture.needsUpdate=true;});
   let target=0,amount=0,running=false,disposed=false,arm,loading=false,last=0;
   const status=document.querySelector('#model-status'),retry=document.querySelector('#model-retry');terminal.visible=false;strap.visible=false;
   async function load(){
@@ -44,21 +53,13 @@ export function createWristScene(host,getData){
     }catch(error){status.textContent='Astronot modeli yüklenemedi. Bağlantını kontrol edip yeniden dene.';retry.hidden=false;console.error(error);}finally{loading=false;}
   }
   retry.onclick=load;
-  function wrap(text,x,y,width,lineHeight,font,color){ctx.font=font;ctx.fillStyle=color;let line='';for(const word of text.split(' ')){if(ctx.measureText(line+word).width>width){ctx.fillText(line,x,y);y+=lineHeight;line='';}line+=word+' ';}ctx.fillText(line,x,y);}
   function update(){
-    const data=getData();renderer.domElement.setAttribute('role','img');renderer.domElement.setAttribute('aria-label',`Bilek terminali. Batarya ${data.resources.energy}, su ${data.resources.water}, oksijen ${data.resources.oxygen}, yiyecek ${data.resources.food}. Gorev: ${data.mission}`);ctx.fillStyle='#10231f';ctx.fillRect(0,0,1024,512);ctx.fillStyle='#aecfbb';ctx.font='22px monospace';ctx.fillText('ARES / EVA',35,38);
-    [['energy','BATARYA'],['water','SU'],['oxygen','OKSİJEN'],['food','YİYECEK']].forEach(([key,label],i)=>{
-      const x=35+(i%2)*290,y=96+Math.floor(i/2)*174,value=data.resources[key];ctx.fillStyle='#bfd6c7';ctx.font='25px sans-serif';ctx.fillText(label,x,y);
-      ctx.fillStyle=value<=30?'#efb475':'#dbf4df';ctx.font='52px monospace';ctx.fillText(String(value),x,y+61);
-      ctx.fillStyle='#3b5345';ctx.fillRect(x,y+86,235,8);ctx.fillStyle=value<=30?'#efb475':'#a6d6b1';ctx.fillRect(x,y+86,235*value/100,8);
-    });
-    ctx.fillStyle='#5a7461';ctx.fillRect(615,68,2,372);ctx.fillStyle='#b1cbb9';ctx.font='24px sans-serif';ctx.fillText('AKTİF GÖREV',650,97);
-    wrap(data.mission,650,158,330,39,'31px sans-serif','#e0efdf');wrap('→ '+data.objective,650,290,330,32,'23px sans-serif','#ddcda4');texture.needsUpdate=true;
+    const data=getData();renderer.domElement.setAttribute('role','img');renderer.domElement.setAttribute('aria-label',`Bilek terminali. Batarya ${data.resources.energy}, su ${data.resources.water}, oksijen ${data.resources.oxygen}, yiyecek ${data.resources.food}. Gorev: ${data.mission}`);display.update(data);
   }
   const resize=()=>{renderer.setSize(host.clientWidth,host.clientHeight);camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();};
   const observer=new ResizeObserver(resize);observer.observe(host);
-  function frame(time){if(!running)return;const dt=Math.min((time-last)/1000,.05);last=time;const speed=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-dt*11);amount+=(target-amount)*speed;rig.position.lerpVectors(hidden,shown,amount);rig.rotation.z=THREE.MathUtils.lerp(.25,-.09,amount);rig.visible=amount>.005;renderer.render(scene,camera);}
+  function frame(time){if(!running)return;const dt=Math.min((time-last)/1000,.05);last=time;const speed=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-dt*11);amount+=(target-amount)*speed;rig.position.lerpVectors(hidden,shown,amount);rig.quaternion.slerpQuaternions(hiddenRotation,shownRotation,amount);rig.visible=amount>.005;renderer.render(scene,camera);}
   function raise(value){target=value?1:0;document.querySelector('#mobile-wrist').setAttribute('aria-pressed',String(value));}
   update();load();
-  return {raise,toggle(){raise(!target)},update,start(){running=true;last=performance.now();resize();update();renderer.setAnimationLoop(frame)},stop(){running=false;renderer.setAnimationLoop(null)},dispose(){disposed=true;running=false;renderer.setAnimationLoop(null);observer.disconnect();retry.onclick=null;scene.traverse(obj=>{obj.geometry?.dispose();if(obj.material)for(const m of [obj.material].flat())m.dispose();});texture.dispose();renderer.dispose();renderer.domElement.remove();}};
+  return {raise,toggle(){raise(!target)},update,start(){running=true;last=performance.now();resize();update();renderer.setAnimationLoop(frame)},stop(){running=false;renderer.setAnimationLoop(null)},dispose(){disposed=true;running=false;renderer.setAnimationLoop(null);observer.disconnect();display.dispose();retry.onclick=null;scene.traverse(obj=>{obj.geometry?.dispose();if(obj.material)for(const m of [obj.material].flat())m.dispose();});texture.dispose();renderer.dispose();renderer.domElement.remove();}};
 }
