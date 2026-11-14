@@ -1,33 +1,21 @@
 # ARES — Mars Koloni Görevi
 
-Türkçe, tarayıcıda çalışan uzay görevi oyunu prototipi. `index.html` dosyasını tarayıcıda açarak çalıştırabilirsiniz. Kurulum veya derleme gerekmez. İsteğe bağlı yerel sunucu: `python -m http.server 4173`.
+## Çalıştırma
 
-## Bu sürüm
+Node.js ile `npm install`, ardından `npm run dev`. Terminalin yazdığı yerel adresi açın. Üretim derlemesi: `npm run build`. Three.js 0.187.0 ve Vite 8.3.8 sürümleri Emre reposuyla eşleştirilerek sabitlenmiştir. ES modülleri ve model yüklemesi için HTTP sunucusu gerekir; index.html dosyasına çift tıklamak artık yeterli değildir.
 
-- Ana menü ve görev kontrol paneli.
-- Sıralı dört aşama: hazırlık, yolculuk, iniş, koloni.
-- Dört astronot, ekip seçimi ve kaynaklara uygulanan uzmanlık bonusları.
-- Ortak oksijen, su, enerji, gıda ve malzeme rezervleri.
-- Tarayıcıda otomatik kayıt ve onaylı görev sıfırlama.
-- Mobil ekranlara uyarlanan tasarım ve klavye ile kullanılabilir kontroller.
+## Mevcut sürüm
 
-Görevi başlatmadan önce ekip seçilebilir. Dört kişi fırlatma için gereklidir; görev başladıktan sonra ekip kilitlenir. Aşamaların üzerinde yazan maliyetler uzmanlık bonusları uygulanmış değerlerdir. Botanikçi koloni aşamasında ayrıca 10 gıda üretir. Görevi başlat düğmesi hazırlığı kilitler; ilk aşama düğmesi fırlatmayı gerçekleştirir.
+Ana menü, dört görev aşaması, astronot kartları ve tarayıcıda otomatik kayıt içerir. Görev maliyetleri ve uzmanlık bonusları ortak stoklara uygulanır. Örnek oyun sayıları bilimsel model değildir. README'de istenen üç kişilik ortak iniş JSON entegrasyonu, uçuş/koloni modülleri ve jüri senaryoları henüz tamamlanmamıştır.
 
-Bu prototip tek oyunculudur. Ortak kaynaklar aynı ekibin rezervlerini ifade eder; çevrim içi çok oyunculu senkronizasyon içermez. Koordinatlar kurgusal iniş alanını temsil eder. Görev süreleri ve kaynak maliyetleri bilimsel model değildir. Google Fonts bağlantısı kullanılamazsa sistem fontları kullanılır. Kayıt mevcut tarayıcı ve adres için geçerlidir.
+## 3D bilek ekranı
 
-## Sonraki geliştirme önerileri
-
-1. Olay kartları: güneş fırtınası, su geri dönüşüm arızası, iniş riski; her kartta maliyeti görünen seçenekler.
-2. Koloni inşası: güneş paneli → enerji, sera → gıda, buz çıkarma → su; günlük üretim ve tüketim döngüsü.
-3. Görev planlama: yük kapasitesine göre erzak ve ekipman seçimi.
-4. Bilim günlüğü: oyun kararlarının arkasındaki gerçek uzay bilimi için kaynaklı kısa açıklamalar.
-5. Yarışma puanlaması: hayatta kalma, bilim çıktısı ve sürdürülebilirlik üzerinden görev sonu raporu.
-
-## Kol terminali kontrolleri
-
-Alt: kol ekranını aç/kapat. Terminal açıkken 1: sağlık, 2: yemek, 3: su. Escape veya kapatma düğmesi de terminali kapatır. Mobilde kol ekranı düğmesi ve sekmeler kullanılabilir. Yemek ve su mevcut ortak stoktan okunur; sağlık 3D mürettebat bağlantısı yapılana kadar açıkça etiketlenmiş örnek değerdir. Bu sürümde kol cihazı CSS arayüz prototipidir; henüz 3D astronot modeli yoktur.
-
-### Güncel kol ekranı
-Alt ile açılan tek görünümde Batarya, Su, Oksijen, Yiyecek ve Aktif Görev birlikte gösterilir. Önceki sağlık sekmesi ve 1/2/3 sekme kısayolları kaldırıldı. Batarya bu prototipte mevcut ortak enerji rezervini gösterir; bağımsız batarya simülasyonu içermez. Aktif görev mevcut aşamadan okunur.
-
-Kol terminali masaüstünde yataydır ve ekranın alt bölümünde bileğin üstünde görünür. Alt ile açılırken aşağıdan yükselir; Alt/Esc ile kapanır. Dar telefon ekranlarında okunabilirlik için içerik alt alta geçer. Bu görünüm hâlâ CSS prototipidir; 3D karakter koluna bağlanmamıştır.
+- Alt veya kol ekranı düğmesi birinci şahıs Mars görünümünü açar ve kolu kaldırır.
+- Sahnedeyken Alt kolu kaldırır/indirir. Esc kolu indirir. Menüye dön düğmesi sahneden çıkar.
+- Bileğe bak düğmesi dokunmatik ekranlarda aynı hareketi sağlar.
+- Batarya, su, oksijen, yiyecek ve aktif görev yatay küçük ekranda birlikte gösterilir. Batarya mevcut ortak enerji rezervidir.
+- Terminalde Alt/Esc ve ortak ekip stoğu yazıları bulunmaz.
+- Emre'nin belirtilen STL modelinin gerçek kol geometrisi kullanılır. Ekran, kasa ve kayış kol grubuna bağlı 3D nesnelerdir; veriler CanvasTexture üzerinden çizilir.
+- STL kemiksizdir. Bu sürüm rijit kol hareketi kullanan birinci şahıs prototipidir; tam karakter iskeleti, yürüme ve mouse ile çevreye bakma henüz yoktur.
+- Model yüklenemediğinde hata ve yeniden deneme düğmesi gösterilir. Sahne menüye dönülünce animasyonu durdurur; sayfa kapanırken GPU kaynakları temizlenir.
+- Model kaynağı ve yapılan dönüşümler public/models/README.md içindedir.
