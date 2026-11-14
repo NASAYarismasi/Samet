@@ -7,15 +7,12 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "terminal:css": "tailwindcss -i terminal-input.css -o terminal-generated.css --minify",
     "test": "node --test tests/game-bridge.test.js"
   },
   "dependencies": {
-    "html2canvas": "1.4.1",
     "three": "0.187.0"
   },
   "devDependencies": {
-    "tailwindcss": "3.4.19",
     "vite": "8.3.8"
   }
 }

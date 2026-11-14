@@ -25,7 +25,7 @@ Terminaldeki adresi açın. `npm run build` üretim derlemesi, `npm run preview`
 - Çıkış onayı, ortam sesinin durması ve sekme kapatılamazsa kapanış ekranı.
 - Hareket azaltma tercihi, klavye kullanımı ve küçük ekran yerleşimleri.
 
-Eski ARES panosu ve kol ekranı güncel index.html tarafından yüklenmez. Önceki kodlar ve exports/kol-ekran-sistemi paketi ayrı tutulur.
+Proje yalnızca güncel Mars açılışı, ana menü, ayarlar, çıkış ve astronot görünüş seçimini içerir.
 
 ## Diğer geliştiriciye devir
 
