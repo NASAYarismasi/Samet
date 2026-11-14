@@ -49,6 +49,15 @@ export function createWristScene(host,getData){
       if(disposed){geometry.dispose();return;}
       const extracted=extractArm(geometry);geometry.dispose();
       arm=new THREE.Mesh(extracted,new THREE.MeshStandardMaterial({color:0xd8d6c6,roughness:.85,side:THREE.DoubleSide}));rig.add(arm);
+      // Continue the cropped STL sleeve beyond the left edge of the view.
+      // The forearm and terminal keep their measured size and attachment.
+      const sleeve=new THREE.Mesh(
+        new THREE.CylinderGeometry(.067,.092,1.05,16,8,true),
+        arm.material
+      );
+      sleeve.rotation.z=-Math.PI/2;
+      sleeve.position.set(-.49,0,.012);
+      arm.add(sleeve);
       terminal.visible=true;strap.visible=true;status.hidden=true;
     }catch(error){status.textContent='Astronot modeli yüklenemedi. Bağlantını kontrol edip yeniden dene.';retry.hidden=false;console.error(error);}finally{loading=false;}
   }
