@@ -22,3 +22,7 @@ Bu prototip tek oyunculudur. Ortak kaynaklar aynı ekibin rezervlerini ifade ede
 3. Görev planlama: yük kapasitesine göre erzak ve ekipman seçimi.
 4. Bilim günlüğü: oyun kararlarının arkasındaki gerçek uzay bilimi için kaynaklı kısa açıklamalar.
 5. Yarışma puanlaması: hayatta kalma, bilim çıktısı ve sürdürülebilirlik üzerinden görev sonu raporu.
+
+## Kol terminali kontrolleri
+
+Alt: kol ekranını aç/kapat. Terminal açıkken 1: sağlık, 2: yemek, 3: su. Escape veya kapatma düğmesi de terminali kapatır. Mobilde kol ekranı düğmesi ve sekmeler kullanılabilir. Yemek ve su mevcut ortak stoktan okunur; sağlık 3D mürettebat bağlantısı yapılana kadar açıkça etiketlenmiş örnek değerdir. Bu sürümde kol cihazı CSS arayüz prototipidir; henüz 3D astronot modeli yoktur.
