@@ -1,13 +1,14 @@
 {
-  "name": "ares-mission-control",
+  "name": "mars-first-colony",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run terminal:css && vite build",
+    "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "terminal:css": "tailwindcss -i terminal-input.css -o terminal-generated.css --minify"
+    "terminal:css": "tailwindcss -i terminal-input.css -o terminal-generated.css --minify",
+    "test": "node --test tests/game-bridge.test.js"
   },
   "dependencies": {
     "html2canvas": "1.4.1",
