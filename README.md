@@ -26,3 +26,6 @@ Bu prototip tek oyunculudur. Ortak kaynaklar aynı ekibin rezervlerini ifade ede
 ## Kol terminali kontrolleri
 
 Alt: kol ekranını aç/kapat. Terminal açıkken 1: sağlık, 2: yemek, 3: su. Escape veya kapatma düğmesi de terminali kapatır. Mobilde kol ekranı düğmesi ve sekmeler kullanılabilir. Yemek ve su mevcut ortak stoktan okunur; sağlık 3D mürettebat bağlantısı yapılana kadar açıkça etiketlenmiş örnek değerdir. Bu sürümde kol cihazı CSS arayüz prototipidir; henüz 3D astronot modeli yoktur.
+
+### Güncel kol ekranı
+Alt ile açılan tek görünümde Batarya, Su, Oksijen, Yiyecek ve Aktif Görev birlikte gösterilir. Önceki sağlık sekmesi ve 1/2/3 sekme kısayolları kaldırıldı. Batarya bu prototipte mevcut ortak enerji rezervini gösterir; bağımsız batarya simülasyonu içermez. Aktif görev mevcut aşamadan okunur.

@@ -1,34 +1,26 @@
-// UI adapter: food/water use the existing shared mission stock.
-// Replace the health placeholder with the active astronaut's crew.health on 3D integration.
-var wristMetric = 'health';
+// Read existing mission state without changing the shared landing schema.
 var wristReturnFocus = null;
 var wristDialog = document.querySelector('#wrist-dialog');
 function renderWrist() {
-  const labels = {health:'Sağlık',food:'Yemek',water:'Su'};
-  const value = wristMetric === 'health' ? 100 : state.resources[wristMetric];
-  document.querySelectorAll('[data-metric]').forEach(button => {
-    const active = button.dataset.metric === wristMetric;
-    button.setAttribute('aria-selected', String(active));
-    button.tabIndex = active ? 0 : -1;
-  });
-  const panel = document.querySelector('#wrist-panel');
-  panel.setAttribute('aria-labelledby', `tab-${wristMetric}`);
-  panel.innerHTML = `<div class="terminal-caption">${wristMetric === 'health' ? 'ASTRONOT / VİTAL BULGULAR' : 'EKİP / ORTAK STOK'}</div><div class="terminal-reading"><strong>${value}</strong><span>${wristMetric === 'health' ? '/ 100' : 'birim'}</span></div><h3>${labels[wristMetric]}</h3><div class="terminal-gauge" role="meter" aria-label="${labels[wristMetric]}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><i style="width:${value}%"></i></div><p>${wristMetric === 'health' ? 'Örnek sağlık verisi · 3D mürettebat bağlantısı bekleniyor.' : value > 30 ? 'Ortak rezerv yeterli. Görev ilerledikçe stok güncellenir.' : 'Düşük rezerv. Sonraki görev maliyetlerini kontrol et.'}</p>`;
+  const metrics = [['energy','Batarya','ϟ'],['water','Su','H₂O'],['oxygen','Oksijen','O₂'],['food','Yiyecek','♧']];
+  const mission = state.stage >= stages.length ? null : stages[state.stage];
+  document.querySelector('#wrist-panel').innerHTML = `<div class="terminal-caption">EKİP / ORTAK KAYNAKLAR</div><div class="wrist-readings">${metrics.map(([key,label,icon]) => {
+    const value = state.resources[key];
+    return `<div class="wrist-stat ${value<=30?'low':''}"><div class="wrist-stat-label"><span>${label}</span><span aria-hidden="true">${icon}</span></div><div class="wrist-stat-value">${value}<small> / 100 birim</small></div><div class="terminal-gauge" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><i style="width:${value}%"></i></div></div>`;
+  }).join('')}</div><div class="wrist-mission"><div class="terminal-caption">AKTİF GÖREV <span>${Math.min(state.stage+1,4)} / 4</span></div><h3>${mission ? mission.title : 'Koloni kuruldu'}</h3><p>${mission ? mission.desc : 'Görev tamamlandı. Mars’taki yaşam alanı faaliyette.'}</p><div class="wrist-objective">${mission ? '→ '+mission.label : '✓ Tüm aşamalar tamamlandı'}</div></div>`;
 }
 function openWrist() {
   if(wristDialog.open)return;
   wristReturnFocus = document.activeElement;
   renderWrist();
   wristDialog.showModal();
-  document.querySelector(`[data-metric="${wristMetric}"]`).focus();
+  document.querySelector('#wrist-close').focus();
 }
 function closeWrist() { if(wristDialog.open)wristDialog.close(); }
 document.querySelector('#wrist-open').onclick = openWrist;
 document.querySelector('#wrist-close').onclick = closeWrist;
 wristDialog.addEventListener('close', () => wristReturnFocus?.focus());
 wristDialog.addEventListener('click', event => {
-  const button = event.target.closest('[data-metric]');
-  if(button){ wristMetric=button.dataset.metric; renderWrist(); }
   if(event.target===wristDialog)closeWrist();
 });
 document.addEventListener('keydown', event => {
@@ -38,15 +30,5 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     wristDialog.open ? closeWrist() : openWrist();
     return;
-  }
-  if(!wristDialog.open || event.altKey)return;
-  const keys = {'1':'health','2':'food','3':'water'};
-  if(keys[event.key]){event.preventDefault();wristMetric=keys[event.key];renderWrist();document.querySelector(`[data-metric="${wristMetric}"]`).focus();}
-  if(event.target.matches('[role="tab"]') && ['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
-    event.preventDefault();
-    const metrics=['health','food','water'];
-    const index=metrics.indexOf(wristMetric);
-    wristMetric=metrics[event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3];
-    renderWrist();document.querySelector(`[data-metric="${wristMetric}"]`).focus();
   }
 });
