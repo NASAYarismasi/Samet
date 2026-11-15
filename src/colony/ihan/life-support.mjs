@@ -36,6 +36,8 @@ export function createLifeSupportFacilities(scene, heightAt, initialState) {
     const telemetry=lifeSupportTelemetry(support),grid=power.telemetry;
     const live=grid.live;
     return {...telemetry,electrical:grid,
+      water:{...telemetry.water,extractor:Boolean(live?.water?.duty),extractedL:grid.state.water},
+      air:{...telemetry.air,producer:Boolean(live?.moxie?.duty)},
       powerKW:live?['habitat','water','moxie','greenhouse'].reduce((sum,key)=>sum+(live[key]?.supply??0),0)+live.heater:0,
       availableKW:(live?.production??0)+(live?.groups??[]).reduce((sum,g)=>sum+g.draw,0),
       spentKWh:Object.values(grid.state.loadEnergy).reduce((sum,value)=>sum+value,0)};
@@ -102,7 +104,7 @@ export function createLifeSupportFacilities(scene, heightAt, initialState) {
         || (Math.abs(x-origin.x)<1.4+hx && z+hz>origin.z+6.3 && z-hz<origin.z+9)
         || machinery.some(b=>x+hx>b.min.x && x-hx<b.max.x && z+hz>b.min.z && z-hz<b.max.z);
     },
-    sync(next) { support = syncLifeSupport(support, colony, next); colony = next; air.update(support.air); water.update(support.water); draw(); },
+    sync(next) { support = next.sol<colony.sol?createLifeSupport(next):{...support,sol:next.sol,crew:next.crew.filter(p=>p.health>0).length}; colony = next; air.update({...support.air,producer:Boolean(power.telemetry.live?.moxie?.duty)}); water.update({...support.water,extractor:Boolean(power.telemetry.live?.water?.duty)}); draw(); },
     update(dt, environment, camera, fps) {
       time += dt;
       power.update(environment,lightsOn());
@@ -140,7 +142,7 @@ export function createLifeSupportFacilities(scene, heightAt, initialState) {
           }
         }
       }
-      air.update(support.air); water.update(support.water);
+      air.update({...support.air,producer:Boolean(power.telemetry.live?.moxie?.duty)}); water.update({...support.water,extractor:Boolean(power.telemetry.live?.water?.duty)});
       air.frame(time,dt); water.frame(time,dt); greenhouse.frame(time);
       consoles.update(dt);
       if (time-lastDraw>.25) { draw(); lastDraw=time; }

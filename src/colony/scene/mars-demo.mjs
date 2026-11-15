@@ -304,7 +304,7 @@ function makeScene() {
         ? modules[target.item.type].name + (canAccess ? " · R ile çatı görüşü" : "")
         : show ? candidate.error ?? (target.position.supportId ? "E · Çatıya monte et" : "E · Zemine yerleştir") : ""
       // IHAN-SRC: greenhouse airlock prompt takes priority near its own doors.
-      const airlock = lifeSupport.prompt(camera) || navigation.prompt(camera.position.x,camera.position.z,camera) || label
+      const airlock = ova.solar.prompt(camera) || lifeSupport.prompt(camera) || navigation.prompt(camera.position.x,camera.position.z,camera) || label
       if (aimLabel.textContent !== airlock) aimLabel.textContent = airlock
 
     }
@@ -356,6 +356,7 @@ function makeScene() {
     onAim: () => drawTarget(targetAt()),
     interact: () => {
       // IHAN-SRC: E -> chamber -> pressure cycle -> E -> second door.
+      if (ova.solar.interact(camera)) return
       if (lifeSupport.interact(camera, fps)) return
       const transition = navigation.interact(camera.position.x,camera.position.z,camera)
       if (transition) {

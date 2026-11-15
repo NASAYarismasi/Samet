@@ -30,7 +30,7 @@ export function mountPowerTablet(onOpen){
       }table.append(row);
     }root.append(table);
     for(const key of ['habitat','water','moxie','greenhouse']){
-      const m=t?.[key];const label={habitat:'Yaşam alanı',water:'Buz sondajı',moxie:'MOXIE',greenhouse:'Sera'}[key];if(m)paragraph(label+' · Tesise '+format(m.consumption)+' kW · Hattan '+format(m.supply)+' kW · Kayıp '+format(m.loss)+' kW · Akım '+format(m.current)+' A · Kaynak '+(m.sources??[]).join(', '));
+      const m=t?.[key];const label={habitat:'Yaşam alanı',water:'Buz sondajı',moxie:'MOXIE',greenhouse:'Sera'}[key];if(m)paragraph(label+' · '+(m.duty>0?'ÇALIŞIYOR':'BESLEME YOK / DURDU')+' · Tesise '+format(m.consumption)+' kW · Hattan '+format(m.supply)+' kW · Kayıp '+format(m.loss)+' kW · Akım '+format(m.current)+' A · Kaynak '+(m.sources??[]).join(', '));
     }
     paragraph('AC bara desteği '+format(t?.transferKW)+' kW');
     for(const transfer of t?.transfers??[])paragraph('G'+transfer.from+' → G'+transfer.to+' · '+format(transfer.kw)+' kW');

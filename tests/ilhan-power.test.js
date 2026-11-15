@@ -27,3 +27,30 @@ it('runs live and forecast calculations without mutating live stocks',()=>{
  expect(report.drillOn).toHaveLength(3);expect(report.drillOff).toHaveLength(3);
  for(const row of [...report.drillOn,...report.drillOff])expect(Number.isFinite(row.stored)).toBe(true);
 });
+
+it('stops drilling after opening the breaker and resumes only when supplied',()=>{
+ const power=createPowerController();power.controls.blackStart=false;
+ power.update({unixSeconds:0,lmst:10,storm:false},false);
+ power.update({unixSeconds:60,lmst:10,storm:false},false);
+ expect(power.telemetry.live.water.duty).toBe(1);
+ power.controls.closed=false;
+ power.update({unixSeconds:120,lmst:10,storm:false},false);
+ expect(power.telemetry.live.water.duty).toBe(0);
+ const water=power.telemetry.state.water;
+ power.update({unixSeconds:180,lmst:10,storm:false},false);
+ expect(power.telemetry.state.water).toBe(water);
+ power.controls.closed=true;
+ power.update({unixSeconds:240,lmst:10,storm:false},false);
+ expect(power.telemetry.live.water.duty).toBe(1);
+});
+
+it('allows surplus daytime rover charging before the night reserve is full',()=>{
+ const power=createPowerController();power.controls.blackStart=false;
+ power.update({unixSeconds:0,lmst:10,storm:false},false);
+ power.update({unixSeconds:60,lmst:10,storm:false},false);
+ const before=power.telemetry.state.battery;
+ expect(power.consumeEnergy(.01)).toBeCloseTo(.01);
+ expect(power.telemetry.state.battery).toBeCloseTo(before-.01);
+ power.consumeEnergy(-.01);
+ expect(power.telemetry.state.battery).toBeCloseTo(before);
+});

@@ -221,6 +221,7 @@ export function createSystemConsoles({ scene, heightAt, placements, emitters, ge
     if (open === 'rover') rover.renderResults(panel.querySelector('.sc-results')) // ROVER
   }
   function show(id) {
+    if(id==='solar'){window.dispatchEvent(new CustomEvent('colony:power-open'));return;}
     if (!consoles[id]) return // ROVER
     open = id
     panel.dataset.system = id

@@ -90,6 +90,7 @@ for(const [id,title,subtitle] of [['rover','Rover kontrol','Görev · üsse ça�
 }
 const eclssApp=document.createElement('button');eclssApp.type='button';eclssApp.textContent='ECLSS · yaşam destek dengesi';listen(eclssApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer('eclss-drawer');});watchActions.append(eclssApp);
 const powerTablet=mountPowerTablet(tabletPage);
+listen(window,'colony:power-open',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);powerTablet.open();});
 const powerApp=document.createElement('button');powerApp.type='button';powerApp.textContent='Güç şebekesi · İlhan';listen(powerApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);powerTablet.open();});watchActions.append(powerApp);
 listen(window,'pagehide',()=>powerTablet.dispose());
 const labApp=document.createElement('button');labApp.type='button';labApp.textContent='Laboratuvar · toprak analizi';listen(labApp,'click',()=>{showDrawer(null);tabletPage(labPanel);});watchActions.append(labApp);

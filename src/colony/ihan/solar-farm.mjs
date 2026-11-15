@@ -78,7 +78,7 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
   const displayTexture=new T.CanvasTexture(display)
   displayTexture.colorSpace=T.SRGBColorSpace
   const displayMaterial=new T.MeshBasicMaterial({map:displayTexture})
-  const hmi=[];
+  const hmi=[],screenTargets=[];
   const inverters=[]
   for(let i=0;i<10;i++) {
     const x=23+4*Math.floor(i/5),z=(i%5-2)*4.5
@@ -102,6 +102,9 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
       hmi.push({canvas,texture,material:new T.MeshBasicMaterial({map:texture})});
     }
     const monitor=part(rack,new T.PlaneGeometry(.91,.455),hmi[i%5].material,.67,1.91,.908);
+    const target=new T.Mesh(new T.PlaneGeometry(.95,.5),new T.MeshBasicMaterial({visible:false}));
+    target.position.set(x+.67,ground-level+1.91,z+.92);target.userData.powerGroup=i%5;
+    farm.add(target);screenTargets.push(target);
     monitor.castShadow=false
     part(rack,new T.BoxGeometry(1.05,1.25,.56),terminal,-.63,.68,1.51)
     part(rack,new T.BoxGeometry(.94,1.13,.06),enclosure,-.63,.68,1.82)
@@ -122,7 +125,7 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
   screen.fillStyle='#101b22';screen.fillRect(0,0,512,256);screen.fillStyle='#d6f0ed';screen.font='28px monospace';screen.fillText('KOLONI BATARYASI',24,48);screen.fillText('YER ALTI BESLEME',24,100);displayTexture.needsUpdate=true;
   const wiring=addPowerCables(T,farm,(x,z)=>terrainHeight(x0+x,z0+z)-level,{greenhouse:{x:26-x0,z:-11-z0},water:{x:64-x0,z:-26-z0}},tables,inverters);
   wiring.setClosed(true);
-  batchStaticLeaves(farm);
+  batchStaticLeaves(farm,new Set(screenTargets));
   // Host adaptation: the weather buttons only exist on İhan's stand-alone page (and not in node tests).
   const weatherButtons = typeof document?.querySelectorAll === "function" ? document.querySelectorAll("[data-solar-weather]") : []
   const update = (factor) => {
@@ -136,7 +139,16 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
     for (const button of weatherButtons) button.addEventListener("click", () => update(Number(button.dataset.solarWeather)))
     update(1)
   }
-  return {farm,level,x0,z0,framePower(dt,dust){
+  const screenRay=new T.Raycaster();screenRay.far=3;
+  function aimedScreen(camera){
+    camera.updateWorldMatrix(true,false);farm.updateWorldMatrix(true,true);
+    screenRay.setFromCamera(new T.Vector2(),camera);
+    return screenRay.intersectObjects(screenTargets,false)[0];
+  }
+  return {farm,level,x0,z0,prompt(camera){return aimedScreen(camera)?'E · Güç grubu panosu':'';},
+  interact(camera){const hit=aimedScreen(camera);if(!hit)return false;
+    window.dispatchEvent(new CustomEvent('colony:power-open',{detail:{group:hit.object.userData.powerGroup}}));return true;
+  },framePower(dt,dust){
     if(lastDust!==null&&dust<lastDust-.02)sweepAge=0;
     lastDust=dust;sweepAge+=dt;
     const stroke=sweepAge<6?Math.sin(Math.min(1,sweepAge/6)*Math.PI):0;

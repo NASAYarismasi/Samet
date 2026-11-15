@@ -20,7 +20,9 @@ export function createPowerController(){
         return 0;
       }
       if(requested===0)return 0;
-      const available=Math.max(0,state.battery-(live?.reserve??0));
+      const surplus=Math.max(0,(live?.production??0)-(live?.groups??[]).reduce((sum,g)=>sum+(g.output??0),0));
+      const canUseDaylight=Boolean(live?.daylight)&&surplus>0;
+      const available=canUseDaylight?state.battery:Math.max(0,state.battery-(live?.reserve??0));
       const accepted=Math.min(requested,available);
       if(state.battery>0)state.banks=state.banks.map(value=>value*(1-accepted/state.battery));
       state.battery=state.banks.reduce((sum,value)=>sum+value,0);
@@ -34,7 +36,7 @@ export function createPowerController(){
         const day=solarDay(controls.season);
         const boundary=hour<day.daylight?day.daylight:SOL_HOURS;
         const seconds=Math.min(remaining,30,(boundary-hour)*3600);
-        if(seconds<1e-7){hour=0;sol++;continue;}
+        if(seconds<1e-7){if(hour<day.daylight){hour=day.daylight;}else{hour=0;sol++;}continue;}
         const midpoint=hour+seconds/7200;
         const transmission=environment.storm?.20:1;lastTransmission=transmission;
         dust=Math.min(.75,dust+seconds/3600*(environment.storm?.008:.0001));

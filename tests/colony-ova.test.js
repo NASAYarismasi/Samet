@@ -37,7 +37,7 @@ describe('İhan Düz Ova world (real source a7d5ce6)',()=>{
     const farm=scene.getObjectByName('MarsSolarFarm');
     const panelBatches=farm.children.filter(o=>o.isInstancedMesh&&o.name!=="SolarCleaningBrushes");
     expect(panelBatches.map(o=>o.count).sort((a,b)=>a-b)).toEqual([42,42,168,168]);
-    const draws=[];farm.traverse(o=>{if(o.isMesh)draws.push(o)});expect(draws.length).toBeLessThanOrEqual(28);
+    const draws=[];farm.traverse(o=>{if(o.isMesh&&o.material?.visible!==false)draws.push(o)});expect(draws.length).toBeLessThanOrEqual(28);
     expect(typeof world.solar.updateBatteryDisplay).toBe('function');
     const lights=[];scene.traverse(o=>{if(o.isLight)lights.push(o);});
     expect(lights).toHaveLength(4); expect(lights.every(o=>!o.castShadow)).toBe(true);
