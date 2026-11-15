@@ -2,7 +2,7 @@
 // Mars surface gravity: https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
 export const MARS_GRAVITY = 3.71;
 // GAME ASSUMPTION: conservative pressurised-suit speeds, eye height and jump impulse.
-export const SUIT = Object.freeze({ eyeHeight: 1.65, walkSpeed: 1.2, runSpeed: 3.0, jumpSpeed: 1.65 });
+export const SUIT = Object.freeze({ eyeHeight: 1.65, walkSpeed: 1.8, runSpeed: 4.5, jumpSpeed: 1.65 });
 export const createSuitMotion = () => ({ height: 0, verticalSpeed: 0, grounded: true });
 /** Analytic constant-gravity flight integrated at the controller's fixed 1/60-second step. */
 export function stepSuitMotion(state, dt, jump = false) {

@@ -90,7 +90,7 @@ describe('İhan Düz Ova world (real source a7d5ce6)',()=>{
     expect(nav.inside).toBe(true);
     expect(nav.collides(0,5.12)).toBe(true);
     nav.update(4.3,0,4);
-    expect(nav.prompt(0,4)).toContain('ikinci');
+    expect(nav.prompt(0,4)).toContain("second");
     expect(nav.interact(0,4)).toBe(true);
     expect(nav.collides(0,2.92)).toBe(false);
     expect(nav.collides(0,5.12)).toBe(true);

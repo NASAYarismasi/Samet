@@ -49,7 +49,7 @@ let fpsEntered = false // first FPS entry starts at the lander; later entries re
 let playerId = state.crew.find(person=>person.id===readMenuPreferences().selected&&person.health>0)?.id ?? state.crew[0].id
 let sceneView
 let lastReport = colonyReport(state)
-const labels = { habitat: "Yaşam alanı", water: "Su", oxygen: "Oksijen", food: "Yiyecek", cleanAir: "CO₂ giderimi" }
+const labels = { habitat: "Habitat", water: "Water", oxygen: "Oxygen", food: "Food", cleanAir: "CO₂ removal" }
 
 const pick = () => { selected=undefined } // Construction placement is disabled.
 
@@ -239,9 +239,9 @@ function makeScene() {
   }
 
   function inspect(target) {
-    if (!target) return { error: "Kurulum için uygun bir yüzeye bak." }
-    if (target.surface === "blocked") return { error: "Zemini veya yaşam modülünün üstündeki montaj alanını hedefle." }
-    if (navigation.inside) return {error:'İç mekânda modül kurulamaz. Hava kilidinden dışarı çık.'}
+    if (!target) return { error: "Look at a suitable construction surface." }
+    if (target.surface === "blocked") return { error: "Aim at the ground or the mounting area on top of the habitat." }
+    if (navigation.inside) return {error:"Cannot build modules indoors. Exit through the airlock."}
     const error = placementError(state, selected, target.position)
     if (error) return { error }
     const type = state.inventory.find(item => item.id === selected).type
@@ -249,18 +249,18 @@ function makeScene() {
     const size = footprints[type]
     if (!supportId) {
       if (ova.blocksFootprint(x,z,size.x,size.z) || lifeSupport.blocksFootprint(x,z,size.x,size.z)) { // IHAN-SRC
-        return {error:'Üs yapıları ve güneş tarlası çevresini açık bırak.'}
+        return {error:"Keep the space around base structures and the solar farm clear."}
       }
       if (hardware.some(asset => asset.visible && Math.abs(x - asset.position.x) < size.x + asset.userData.radius &&
-        Math.abs(z - asset.position.z) < size.z + asset.userData.radius)) return { error: "NASA aracına çok yakın." }
+        Math.abs(z - asset.position.z) < size.z + asset.userData.radius)) return { error: "Too close to the NASA vehicle." }
       if (surfaceDeposits.some(node => Math.abs(x - node.x) < size.x + .7 && Math.abs(z - node.z) < size.z + .7)) {
-        return { error: "Kaynak yatağının çevresini açık bırak." }
+        return { error: "Keep the area around the resource deposit clear." }
       }
       if (fps.active && Math.abs(camera.position.x - x) < size.x + .31 &&
-          Math.abs(camera.position.z - z) < size.z + .31) return { error: "Yerleştirmek için bir adım geri çık." }
+          Math.abs(camera.position.z - z) < size.z + .31) return { error: "Step back to place." }
       if ([...crewModels.values()].some(actor => actor.visible &&
           Math.abs(actor.position.x - x) < size.x + .3 && Math.abs(actor.position.z - z) < size.z + .3)) {
-        return { error: "Bu noktada bir astronot var." }
+        return { error: "An astronaut is standing here." }
       }
       return { y: foundationHeight(x, z, size), type }
     }
@@ -302,14 +302,14 @@ function makeScene() {
     if (fps.active) {
       const canAccess = target?.item?.type === "habitat" && !roofAccess
       const label = deposit
-        ? materialNames[deposit.material] + (target.distance > 8 ? " · Yaklaş" : " · E ile topla")
+        ? materialNames[deposit.material] + (target.distance > 8 ? " · Move closer" : " · E to collect")
         : crop ? modules[target.item.type].name + " · " +
-          (workshop.growing[target.item.id] === null ? "E ile yeni dönem başlat" :
-            workshop.growing[target.item.id] >= crop.sols ? "E ile hasat et" :
-            (workshop.growing[target.item.id] ?? 0) + "/" + crop.sols + " üretim solu")
+          (workshop.growing[target.item.id] === null ? "E to start a new growing cycle" :
+            workshop.growing[target.item.id] >= crop.sols ? "E to harvest" :
+            (workshop.growing[target.item.id] ?? 0) + "/" + crop.sols + " production sols")
         : target?.item && (target.surface === "blocked" || !selected)
-        ? modules[target.item.type].name + (canAccess ? " · R ile çatı görüşü" : "")
-        : show ? candidate.error ?? (target.position.supportId ? "E · Çatıya monte et" : "E · Zemine yerleştir") : ""
+        ? modules[target.item.type].name + (canAccess ? " · R for roof view" : "")
+        : show ? candidate.error ?? (target.position.supportId ? "E · Mount on roof" : "E · Place on ground") : ""
       // IHAN-SRC: greenhouse airlock prompt takes priority near its own doors.
       const airlock = lifeSupport.prompt(camera) || navigation.prompt(camera.position.x,camera.position.z,camera) || label
       if (aimLabel.textContent !== airlock) aimLabel.textContent = airlock
@@ -320,12 +320,12 @@ function makeScene() {
   function commit(target) {
     if (target?.deposit) {
       if (fps.active && target.distance > 8) {
-        status.textContent = "Toplamak için yatağa yaklaş."
+        status.textContent = "Approach the deposit to collect."
         return
       }
       workshopAction(() => {
         workshop = collect(workshop, target.deposit.id, state.sol)
-        return "+" + target.deposit.amount + " " + materialNames[target.deposit.material] + " · +2 madencilik XP"
+        return "+" + target.deposit.amount + " " + materialNames[target.deposit.material] + " · +2 mining XP"
       })
       return
     }
@@ -352,10 +352,10 @@ function makeScene() {
       }
       environment.setFPS(active)
       viewport.classList.toggle("fps", active)
-      byId("view-mode").textContent = active ? "Üs planına dön" : "Astronotun gözünden gez"
+      byId("view-mode").textContent = active ? "Return to base view" : "Explore in first person"
       byId("view-help").textContent = active
-        ? "WASD Yürü · Shift Hızlan · Boşluk Zıpla · E Etkileşim · R Çatı · L Lamba · V Serbest bakış · Alt Tablet · Esc Ayarlar"
-        : "Modülü seç ve zeminde veya çatıda istediğin noktaya tıkla · Sürükleyerek döndür"
+        ? "WASD Move · Shift Sprint · Space Jump · E Interact · R Roof · L Light · V Free look · Tab Tablet · Esc Settings"
+        : "Select a module and click a spot on the ground or roof · Drag to rotate"
       lastPointer = undefined
       redrawScene()
     },
@@ -374,14 +374,14 @@ function makeScene() {
       const target = targetAt()
       const roof = target?.item?.type === "habitat" && roofs.get(target.item.id)
       if (!roof) {
-        status.textContent = "Çatıya erişmek için yaşam modülüne yaklaş ve bak."
+        status.textContent = "Approach and look at the habitat to access its roof."
         return
       }
       roofAccess = camera.position.clone()
       roofAccess.top = roof.userData.top
       const { x, z } = worldPlacement(target.item)
       lookFrom(new T.Vector3(x, roof.userData.top + 1.65, z), -1.47)
-      status.textContent = "Nişanı çatıda istediğin noktaya getir. E ile yerleştir, R ile in."
+      status.textContent = "Aim at your chosen roof position. E to place, R to return."
     },
     collides,
     groundY: (x, z) => roofAccess?.top ?? lifeSupport.floorAt(x,z) ?? navigation.floorAt(x,z) ?? groundY(x,z),
@@ -559,7 +559,7 @@ function makeScene() {
   function redrawScene() {
     if (disposed) return
     const playerIndex = state.crew.findIndex(person => person.id === playerId)
-    byId("helmet").textContent = "Astronot " + (playerIndex + 1) + " · Sağlık %" + state.crew[playerIndex].health
+    byId("helmet").textContent = "Astronaut " + (playerIndex + 1) + " · Health %" + state.crew[playerIndex].health
     // IHAN-SRC: sol completion uses the new colony power/weather row.
     lifeSupport.sync(state)
     environment.setLifeSupport(lifeTelemetry())
@@ -668,7 +668,7 @@ function makeScene() {
           actor.clear()
           actor.add(cloneSkinned(teamCharacter))
         }
-        byId("character-status").textContent = "Uçuş modelindeki NASA astronotu kullanılıyor."
+        byId("character-status").textContent = "Using the NASA astronaut from the flight model."
       }],
     ]
     const results = await Promise.allSettled(targets.map(async ([id, apply]) =>
@@ -676,8 +676,8 @@ function makeScene() {
     if (disposed) return
     redrawScene()
     byId("nasa-status").textContent = results.every(item => item.status === "fulfilled")
-      ? "Düz Ova · NASA astronotları ve Perseverance"
-      : "Bazı NASA modelleri açılamadı. İlgili parça için geçici model kullanılıyor."
+      ? "Flat Plains · NASA astronauts and Perseverance"
+      : "Some NASA models could not load. A fallback model is used for the affected part."
   }
 
   return {
@@ -719,7 +719,7 @@ function makeScene() {
       roofAccess=undefined; currentView=name
       camera.position.fromArray(view.position); controls.target.fromArray(view.target); controls.update()
       for (const button of document.querySelectorAll('[data-ova-view]')) button.setAttribute('aria-pressed',String(button.dataset.ovaView===name))
-      status.textContent=name==='solar' ? 'Güneş tarlası · 42 masa · 420 panel' : name==='pad' ? 'Modül kurulum alanı · Zemine tıklayarak yerleştir.' : 'Düz Ova · İhan’ın Mars üssü'
+      status.textContent=name==='solar' ? "Solar farm · 42 tables · 420 panels" : name==='pad' ? "Module construction area · Click the ground to place." : "Flat Plains · İhan’s Mars base"
     },
     toggleView() {
       // Only the very first FPS entry starts at the lander ladder. Later entries resume where the
@@ -737,7 +737,7 @@ function makeScene() {
     async loadCharacter(id, bytes) {
       const index = state.crew.findIndex(person => person.id === id)
       const actor = crewModels.get(index)
-      if (!actor) throw new RangeError("Astronot bulunamadı.")
+      if (!actor) throw new RangeError("Astronaut not found.")
       const gltf = await parseSceneModel(bytes)
       const character = fitCharacter(gltf.scene)
       // Shared default GLB resources remain alive until scene teardown.
@@ -752,13 +752,13 @@ function makeScene() {
       const feedback = byId("rover-status")
       if (reference.children.length) {
         reference.visible = !reference.visible
-        button.textContent = reference.visible ? "Perseverance’ı gizle" : "Perseverance’ı göster"
-        feedback.textContent = reference.visible ? "Perseverance, üssün batısında · NASA/JPL" : ""
+        button.textContent = reference.visible ? "Hide Perseverance" : "Show Perseverance"
+        feedback.textContent = reference.visible ? "Perseverance, west of the base · NASA/JPL" : ""
         redrawScene()
         return
       }
       button.disabled = true
-      feedback.textContent = "NASA modeli yükleniyor…"
+      feedback.textContent = "Loading NASA model…"
       try {
         const gltf = await parseSceneModel(await loadBytes("rover-data", lifecycle.signal))
         const rover = new T.Group()
@@ -769,13 +769,13 @@ function makeScene() {
         reference.userData.radius = 1.55
         hardware.push(reference)
         redrawScene()
-        feedback.textContent = "Perseverance, üssün batısında · NASA/JPL"
-        button.textContent = "Perseverance’ı gizle"
+        feedback.textContent = "Perseverance, west of the base · NASA/JPL"
+        button.textContent = "Hide Perseverance"
       } catch (error) {
         if (disposed) return
         console.error(error)
         button.disabled = false
-        feedback.textContent = "Model yüklenemedi. Tekrar dene."
+        feedback.textContent = "Could not load model. Retry."
       } finally {
         button.disabled = false
       }
@@ -791,7 +791,7 @@ const modelFiles = {
 }
 async function loadBytes(id, signal) {
   const response = await fetch(import.meta.env.BASE_URL + "models/colony/" + modelFiles[id], { signal })
-  if (!response.ok) throw new Error("Model indirilemedi: " + modelFiles[id])
+  if (!response.ok) throw new Error("Could not download model: " + modelFiles[id])
   return response.arrayBuffer()
 }
 
@@ -808,7 +808,7 @@ function fitCharacter(character, height = 1.85) {
   const bounds = new T.Box3().setFromObject(character)
   const size = bounds.getSize(new T.Vector3())
   const center = bounds.getCenter(new T.Vector3())
-  if (!(size.y > 0)) throw new Error("Karakter geometrisi bulunamadı.")
+  if (!(size.y > 0)) throw new Error("Character geometry not found.")
   const scale = height / size.y // GAME ASSUMPTION: display height in metres, recovered from the Düz Ova demo.
   character.scale.multiplyScalar(scale)
   character.position.multiplyScalar(scale)
@@ -854,20 +854,20 @@ function tendCrop(unit) {
   workshopAction(() => {
     if (workshop.growing[unit.id] === null) {
       workshop = replant(workshop, unit)
-      return modules[unit.type].name + " · Yeni üretim dönemi başladı."
+      return modules[unit.type].name + " · New growing cycle started."
     }
     workshop = harvest(workshop, unit)
     const crop = crops[unit.type]
-    return "+" + crop.amount + " " + materialNames[crop.yield] + " · +" + crop.xp + " tarım XP"
+    return "+" + crop.amount + " " + materialNames[crop.yield] + " · +" + crop.xp + " farming XP"
   })
 }
 
 function updateWorkshop(stopped) {
   const { stock, xp } = workshop
-  byId("workshop-stock").textContent = stock.credits + " kredi · " + Object.entries(stock)
+  byId("workshop-stock").textContent = stock.credits + " credits · " + Object.entries(stock)
     .filter(([id]) => id !== "credits")
     .map(([id, amount]) => materialNames[id] + " " + amount).join(" · ")
-  byId("workshop-skills").textContent = "Tarım " + levelOf(xp.farming) + ". seviye · " + xp.farming + " XP"
+  byId("workshop-skills").textContent = "Farming " + levelOf(xp.farming) + ". level · " + xp.farming + " XP"
   byId("recipes").replaceChildren(...recipes.map(recipe => {
     const action = button(recipe.name, () => workshopAction(() => {
       workshop = craft(workshop, recipe.id)
@@ -876,7 +876,7 @@ function updateWorkshop(stopped) {
         state = { ...state, inventory: [...state.inventory, item] }
         selected = item.id
       }
-      return recipe.name + " · Tamamlandı."
+      return recipe.name + " · Complete."
     }))
     const detail = document.createElement("small")
     const cost = Object.entries(recipe.cost).map(([id, amount]) => amount + " " + materialNames[id]).join(" · ")
@@ -891,24 +891,24 @@ function updateWorkshop(stopped) {
     const empty = workshop.growing[unit.id] === null
     const progress = workshop.growing[unit.id] ?? 0
     const action = button(modules[unit.type].name + " · " +
-      (empty ? "Yeni dönem başlat" : progress === crop.sols ? "Hasat et" : progress + "/" + crop.sols + " sol"),
+      (empty ? "Start new cycle" : progress === crop.sols ? "Harvest" : progress + "/" + crop.sols + " sol"),
       () => tendCrop(unit))
     action.disabled = stopped || (!empty && progress < crop.sols)
     return action
   }))
   const saleButtons = [["mineral", 2], ["potato", 4], ["bean", 6], ["apple", 8]].map(([id, price]) => {
-    const action = button(materialNames[id] + " teslim et · +" + price + " kredi", () => workshopAction(() => {
+    const action = button(materialNames[id] + " deliver · +" + price + " credits", () => workshopAction(() => {
       workshop = sell(workshop, id)
-      return materialNames[id] + " teslim edildi · +" + price + " kredi"
+      return materialNames[id] + " delivered · +" + price + " credits"
     }))
     action.disabled = stopped || stock[id] < 1
     return action
   })
   const foodButtons = ["potato", "bean", "apple"].filter(id => stock[id] > 0).map(id => {
-    const action = button(materialNames[id] + " → erzak", () => workshopAction(() => {
+    const action = button(materialNames[id] + " → supplies", () => workshopAction(() => {
       workshop = { ...workshop, stock: { ...workshop.stock, [id]: workshop.stock[id] - 1 } }
       state = { ...state, supplies: { ...state.supplies, food: state.supplies.food + 1 } }
-      return materialNames[id] + " erzağa eklendi."
+      return materialNames[id] + " added to supplies."
     }))
     action.disabled = stopped
     return action
@@ -932,7 +932,7 @@ function update() {
     choices.value = playerId
     sceneView?.selectPlayer()
   }
-  byId("weather").textContent = day?.storm ? "Toz fırtınası" : day ? "Açık gökyüzü" : "İniş tamamlandı"
+  byId("weather").textContent = day?.storm ? "Dust storm" : day ? "Clear sky" : "Landing complete"
   byId("inventory").replaceChildren(...state.inventory.map(item => {
     const choice = button(modules[item.type].name, () => { selected = selected === item.id ? undefined : item.id; update() })
     choice.setAttribute("aria-pressed", String(selected === item.id))
@@ -941,12 +941,12 @@ function update() {
     return choice
   }))
   byId("selected").textContent = selected ? modules[state.inventory.find(item => item.id === selected).type].detail
-    : state.inventory.length ? "Yerleştirmek için bir modül seç. Seçimi kaldırmak için tekrar tıkla." : "Envanter boş."
+    : state.inventory.length ? "Select a module to place. Click again to deselect." : "Inventory empty."
   byId("crew").replaceChildren(...state.crew.map((person, index) => {
     const label = document.createElement("label")
-    label.append("Astronot " + (index + 1) + " · %" + person.health)
+    label.append("Astronaut " + (index + 1) + " · %" + person.health)
     const select = document.createElement("select")
-    select.add(new Option("Görev seç", ""))
+    select.add(new Option("Select mission", ""))
     for (const [id, name] of Object.entries(roles)) select.add(new Option(name, id))
     select.value = person.role ?? ""
     select.disabled = stopped || !person.health
@@ -955,24 +955,24 @@ function update() {
     return label
   }))
   const number = new Intl.NumberFormat("tr", { maximumFractionDigits: 2 })
-  byId("resources").textContent = "Su " + number.format(state.supplies.water) + " · Oksijen " + number.format(state.supplies.oxygen) +
-    " · Yiyecek " + number.format(state.supplies.food) + " · Yedek parça " + state.supplies.spareParts
-  byId("energy").textContent = day ? "Üretilen " + day.generation + " · Harcanan " + day.used + " · Batarya " + day.battery + "/" + day.capacity
-    : "Başlangıç enerjisi " + state.startupEnergy
+  byId("resources").textContent = "Water " + number.format(state.supplies.water) + " · Oxygen " + number.format(state.supplies.oxygen) +
+    " · Food " + number.format(state.supplies.food) + " · Spare parts " + state.supplies.spareParts
+  byId("energy").textContent = day ? "Produced " + day.generation + " · Consumed " + day.used + " · Battery " + day.battery + "/" + day.capacity
+    : "Initial energy " + state.startupEnergy
   byId("system-status").textContent = state.operations
-    ? (day?.systems.join(" · ") || "Yaşam desteği donanımını yerleştir ve inşaata ata.") : ""
-  byId("buildings").textContent = state.placed.filter(item => item.active).length + " etkin · " +
-    state.placed.filter(item => !item.active).length + " inşaat bekliyor"
+    ? (day?.systems.join(" · ") || "Place life support equipment and assign construction crew.") : ""
+  byId("buildings").textContent = state.placed.filter(item => item.active).length + " active · " +
+    state.placed.filter(item => !item.active).length + " awaiting construction"
   const tbody = byId("log")
   tbody.replaceChildren()
   for (const row of state.timeline) {
     const tr = tbody.insertRow()
-    for (const value of [row.sol, row.storm ? "Fırtına" : "Açık", row.generation,
-      row.used, row.battery, row.missing.map(key => labels[key]).join(", ") || "Karşılandı"]) {
+    for (const value of [row.sol, row.storm ? "Storm" : "On", row.generation,
+      row.used, row.battery, row.missing.map(key => labels[key]).join(", ") || "Met"]) {
       tr.insertCell().textContent = value
     }
   }
-  byId("outcome").textContent = stopped ? (lastReport.status === "success" ? "Görev başarılı" : "Görev başarısız") : "Görev sürüyor"
+  byId("outcome").textContent = stopped ? (lastReport.status === "success" ? "Mission successful" : "Mission failed") : "Mission in progress"
   byId("reasons").replaceChildren(...lastReport.reasons.map(reason => {
     const item = document.createElement("li")
     item.textContent = reason
@@ -990,21 +990,21 @@ byId("advance").onclick = () => {
   update()
   const day = state.timeline.at(-1)
   if (day) {
-    status.textContent = lastReport.status !== "in-progress" ? "Görev bitti. Sonucu görev raporunda incele."
-      : day.missing.length ? "Karşılanmayan ihtiyaçlar · " + day.missing.map(key => labels[key]).join(", ")
-      : "Sol " + day.sol + " tamamlandı. Sıradaki sol için görevleri ata."
+    status.textContent = lastReport.status !== "in-progress" ? "Mission ended. Review the result in the mission report."
+      : day.missing.length ? "Unmet needs · " + day.missing.map(key => labels[key]).join(", ")
+      : "Sol " + day.sol + " complete. Assign roles for the next sol."
   }
 }
 function beginColony(next) {
   state = next
   sceneView?.resetEnvironment()
   workshop = startWorkshop()
-  byId("workshop-message").textContent = "Seradaki kabinleri yetiştir; hasadı erzağa aktar."
+  byId("workshop-message").textContent = "Grow crops in greenhouse pods and transfer the harvest to supplies."
   selected = undefined
   playerId = (state.crew.find(person => person.health > 0) ?? state.crew[0]).id
-  byId("player").replaceChildren(...state.crew.map((person, index) => new Option("Astronot " + (index + 1), person.id)))
+  byId("player").replaceChildren(...state.crew.map((person, index) => new Option("Astronaut " + (index + 1), person.id)))
   byId("player").value = playerId
-  status.textContent = "Envanterden modül seç ve uygun yüzeye yerleştir."
+  status.textContent = "Select an inventory module and place it on a suitable surface."
   update()
   sceneView?.selectPlayer()
 }
@@ -1046,18 +1046,18 @@ function showPlan() {
   const plan = currentPlan()
   byId("cargo-launch").disabled = landing.source === "flight" || !plan?.withinLimit
   if (!plan) {
-    byId("cargo-total").textContent = "Erzak miktarlarını izin verilen aralıkta gir."
+    byId("cargo-total").textContent = "Enter supply amounts within the allowed range."
     byId("transit-plan").textContent = ""
     byId("cargo-list").replaceChildren()
     return
   }
-  const kg = value => Math.round(value).toLocaleString("tr-TR") + " kg"
-  byId("cargo-total").textContent = "Mars iniş yükü " + kg(plan.massKg) + " / " + kg(cargoLimitKg) +
-    (plan.withinLimit ? "" : " · Kütle sınırı aşıldı")
+  const kg = value => Math.round(value).toLocaleString("en-US") + " kg"
+  byId("cargo-total").textContent = "Mars landing cargo " + kg(plan.massKg) + " / " + kg(cargoLimitKg) +
+    (plan.withinLimit ? "" : " · Mass limit exceeded")
   const { transit } = plan
-  byId("transit-plan").textContent = transitDays + " Dünya günü transfer için " +
-    kg(transit.foodKg) + " öğün, " + kg(transit.waterKg) + " su ve " +
-    kg(transit.oxygenReserveKg) + " yedek oksijen. Transfer aracında su geri kazanımı ve elektroliz varsayılıyor."
+  byId("transit-plan").textContent = transitDays + " Earth-day transfer: " +
+    kg(transit.foodKg) + " meals, " + kg(transit.waterKg) + " water and " +
+    kg(transit.oxygenReserveKg) + " reserve oxygen. Water recovery and electrolysis are assumed aboard the transfer vehicle."
   byId("cargo-list").replaceChildren(...plan.cargo.map(entry => {
     const item = document.createElement("li")
     item.textContent = entry.name + " · " + kg(entry.kg)
@@ -1073,7 +1073,7 @@ cargoForm.addEventListener("submit", event => {
   if (landing.source === "flight" || !plan?.withinLimit) return
   activeMissionPlan = plan
   beginColony(startPlannedColony(plan))
-  updateLandingSource("Dünya yük planı uygulandı")
+  updateLandingSource("Earth cargo manifest applied")
 }, { signal: uiLifecycle.signal })
 byId("landing-file").onchange = async event => {
   const input = event.currentTarget
@@ -1087,11 +1087,11 @@ byId("landing-file").onchange = async event => {
     activeMissionPlan = undefined
     beginColony(next)
     showPlan()
-    updateLandingSource("JSON uçuş verisi alındı")
-    byId("landing-status").textContent = "Uçuş verisi alındı · " + file.name + " · İniş tercihi " +
-      (payload.landingSite === "flat" ? "düz saha" : "engebeli saha") + " · Başlangıç enerjisi " + payload.surfaceEnergy
+    updateLandingSource("Flight JSON data received")
+    byId("landing-status").textContent = "Flight data received · " + file.name + " · Landing preference " +
+      (payload.landingSite === "flat" ? "flat site" : "rough site") + " · Initial energy " + payload.surfaceEnergy
   } catch {
-    byId("landing-status").textContent = "İniş verisi okunamadı. Emre’nin crew, supplies, modules, landingSite ve surfaceEnergy alanlarını içeren JSON dosyasını seç."
+    byId("landing-status").textContent = "Could not read landing data. Select Emre’s JSON file containing crew, supplies, modules, landingSite and surfaceEnergy."
   } finally {
     input.disabled = false
     input.value = ""
@@ -1108,7 +1108,7 @@ byId("report").onclick = () => {
 try {
   sceneView = makeScene()
   const choices = byId("player")
-  state.crew.forEach((person, index) => choices.add(new Option("Astronot " + (index + 1), person.id)))
+  state.crew.forEach((person, index) => choices.add(new Option("Astronaut " + (index + 1), person.id)))
   choices.value = playerId
   choices.onchange = () => { playerId = choices.value; sceneView.selectPlayer() }
   byId("view-mode").onclick = () => sceneView.toggleView()
@@ -1120,16 +1120,16 @@ try {
     const name = choices.selectedOptions[0].textContent
     const feedback = byId("character-status")
     characterFile.disabled = true
-    feedback.textContent = "Karakter yükleniyor…"
+    feedback.textContent = "Loading character…"
     try {
       const bytes = await file.arrayBuffer()
       if (bytes.byteLength < 12 || new DataView(bytes).getUint32(0, true) !== 0x46546c67) {
-        throw new Error("Geçersiz GLB")
+        throw new Error("Invalid GLB")
       }
       await sceneView.loadCharacter(id, bytes)
-      feedback.textContent = name + " · " + file.name + " yüklendi."
+      feedback.textContent = name + " · " + file.name + " loaded."
     } catch {
-      feedback.textContent = "Model açılamadı. Dokuları dosyaya gömülü bir GLB seç."
+      feedback.textContent = "Could not open model. Select a GLB with embedded textures."
     } finally {
       characterFile.value = ""
       characterFile.disabled = false
@@ -1147,18 +1147,18 @@ try {
   byId("rover").disabled = true
   byId("view-mode").disabled = true
   byId("character-file").disabled = true
-  status.textContent = "3B görünüm açılamadı. WebGL destekleyen bir tarayıcıda aç."
+  status.textContent = "Could not open 3D view. Use a WebGL-capable browser."
 }
-updateLandingSource(landing.source === "flight" ? "Uçuştan gelen iniş verisi" : "Varsayılan Dünya yükü")
+updateLandingSource(landing.source === "flight" ? "Landing data from flight" : "Default Earth cargo")
 update()
 
 function updateLandingSource(label) {
-  byId("landing-source").textContent = label + " · Jezero Krateri"
-  byId("landing-source").title = "İniş stoku · Su " + state.supplies.water + " · Oksijen " + state.supplies.oxygen +
-    " · Yiyecek " + state.supplies.food + " kişi-sol · Yedek parça " + state.supplies.spareParts
+  byId("landing-source").textContent = label + " · Jezero Crater"
+  byId("landing-source").title = "Landing supplies · Water " + state.supplies.water + " · Oxygen " + state.supplies.oxygen +
+    " · Food " + state.supplies.food + " person-sols · Spare parts " + state.supplies.spareParts
   byId("landing-status").textContent = label + (landing.source === "flight"
-    ? " · Uçuş erzakları korunuyor; Dünya yük planı yalnızca önizlemedir."
-    : " · Yük planını değiştirip yeni Mars operasyonunu başlatabilirsin.")
+    ? " · Flight supplies are preserved; Earth cargo manifest is only a preview."
+    : " · You can edit the cargo manifest and start a new Mars operation.")
 }
 
 // Preserve a back-forward cached page; release listeners/resources on real teardown/HMR.

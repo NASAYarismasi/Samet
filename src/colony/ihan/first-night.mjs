@@ -7,7 +7,7 @@ export function readLanding(data) {
   if (!Array.isArray(crew) || crew.length < 1 || crew.length > 4
       || !crew.every(member => member && typeof member.id === "string")
       || ![surfaceEnergy, supplies?.water, supplies?.oxygen].every(nonnegative)) {
-    throw new Error("İniş JSON dosyasında ekip, su, oksijen ve yüzey enerjisi alanlarını kontrol et.")
+    throw new Error("Check the crew, water, oxygen and surface energy fields in the landing JSON.")
   }
   return { crew:crew.length, water:supplies.water, oxygen:supplies.oxygen, energy:surfaceEnergy }
 }
@@ -51,17 +51,17 @@ export function connectFirstNight(airSystem, waterSystem, sample) {
   const file=panel.querySelector("input[type=file]")
   const status=panel.querySelector("[role=status]")
   const report=panel.querySelector("output")
-  const fmt=new Intl.NumberFormat("tr-TR",{maximumFractionDigits:2})
+  const fmt=new Intl.NumberFormat("en-US",{maximumFractionDigits:2})
   let landing=readLanding(sample)
   let loadId=0
   const showLanding=label=>{
-    status.textContent=label+" · "+landing.crew+" kişi · "+fmt.format(landing.energy)+" kWh başlangıç · "+
-      fmt.format(landing.water)+" L su · "+fmt.format(landing.oxygen)+" kg O₂ kargo"
+    status.textContent=label+" · "+landing.crew+" people · "+fmt.format(landing.energy)+" kWh initial · "+
+      fmt.format(landing.water)+" L water · "+fmt.format(landing.oxygen)+" kg O₂ cargo"
     report.textContent=""
     airSystem.update(createAirState())
     waterSystem.update(createWaterState())
   }
-  showLanding("Emre’nin örnek inişi")
+  showLanding("Emre’s example landing")
   file.addEventListener("change",async()=>{
     const id=++loadId
     if (!file.files.length) return
@@ -72,14 +72,14 @@ export function connectFirstNight(airSystem, waterSystem, sample) {
       showLanding(file.files[0].name)
     } catch {
       if (id!==loadId) return
-      status.textContent="İniş dosyası okunamadı. Ekrandaki senaryo son geçerli inişi kullanıyor."
+      status.textContent="Could not read landing file. This scenario uses the last valid landing."
     }
   })
   panel.querySelector("#night-example").addEventListener("click",()=>{
     ++loadId
     file.value=""
     landing=readLanding(sample)
-    showLanding("Emre’nin örnek inişi")
+    showLanding("Emre’s example landing")
   })
   form.addEventListener("submit",event=>{
     event.preventDefault()
@@ -89,17 +89,17 @@ export function connectFirstNight(airSystem, waterSystem, sample) {
     airSystem.update({...air,producer:air.generatedKg>0})
     waterSystem.update({...water,extractor:water.extractedL>0})
     const rows=[
-      ["Güneş üretimi",result.solar,"kWh/sol"],
-      ["Gün batımında batarya",result.atDusk,"kWh"],
-      ["Sabah batarya",result.battery,"kWh"],
-      ["Temiz su deposu",water.cleanL,"L"],
-      ["Oksijen deposu",air.oxygenKg,"kg"],
-      ["Kabin CO₂ kütlesi",air.co2Kg,"kg"],
-      ["Buzdan çıkarılan su",water.extractedL,"L"],
-      ["Üretilen oksijen",air.generatedKg,"kg"],
-      ["Karşılanamayan enerji",result.dayShortfall+result.unservedBase,"kWh"],
-      ["Karşılanamayan oksijen",air.unservedOxygenKg,"kg"],
-      ["Karşılanamayan su",water.unservedL,"L"]
+      ["Solar generation",result.solar,"kWh/sol"],
+      ["Battery at sunset",result.atDusk,"kWh"],
+      ["Morning battery",result.battery,"kWh"],
+      ["Clean water tank",water.cleanL,"L"],
+      ["Oxygen tank",air.oxygenKg,"kg"],
+      ["Cabin CO₂ mass",air.co2Kg,"kg"],
+      ["Water extracted from ice",water.extractedL,"L"],
+      ["Oxygen produced",air.generatedKg,"kg"],
+      ["Unserved energy",result.dayShortfall+result.unservedBase,"kWh"],
+      ["Unmet oxygen demand",air.unservedOxygenKg,"kg"],
+      ["Unmet water demand",water.unservedL,"L"]
     ]
     const list=document.createElement("dl")
     for(const [label,value,unit] of rows) {

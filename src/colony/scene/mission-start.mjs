@@ -4,7 +4,7 @@ import { createColony, createColonyFromFlight } from '../mars-koloni.mjs'
 export function createSceneColony(landing, plan) {
   if (landing.source === 'flight') return createColonyFromFlight(landing)
   if (!plan) return createColony(landing)
-  if (!plan.withinLimit) throw new RangeError('İniş yükü kütle sınırını aşıyor.')
+  if (!plan.withinLimit) throw new RangeError("Landing cargo exceeds the mass limit.")
   return {
     ...createColonyFromFlight(plan.landing),
     operations: { ...plan.operations },

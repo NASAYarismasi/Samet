@@ -4,24 +4,24 @@ export const transitDays = 259
 const oxygenReserveDays = 2
 const solDays = 1.0275
 export const cargoOptions = {
-  waterRecycler: { name: "Atık su arıtma ünitesi", kg: 280, description: "Buhar yoğuşması ve sıvı atıktan su geri kazanır." },
-  oxygenUnit: { name: "Su elektrolizi ünitesi", kg: 160, description: "Elektrik ve su kullanarak oksijen üretir." },
-  greenhouse: { name: "Kapalı sera", kg: 330, description: "Işık ve iklim kontrolü sağlar. Mahsul ayrıca ekilir." },
-  backupPower: { name: "Yedek güneş paneli", kg: 115, description: "Fırtınada da üretir. Toz, üretimi düşürür." },
-  backupBattery: { name: "Ek batarya", kg: 95, description: "Güneş üretimi düştüğünde enerji açığını kapatır." },
+  waterRecycler: { name: "Wastewater treatment unit", kg: 280, description: "Recovers water from condensed vapor and liquid waste." },
+  oxygenUnit: { name: "Water electrolysis unit", kg: 160, description: "Generates oxygen using electricity and water." },
+  greenhouse: { name: "Enclosed greenhouse", kg: 330, description: "Provides lighting and climate control. Crops are planted separately." },
+  backupPower: { name: "Spare solar panel", kg: 115, description: "Generates during storms too. Dust reduces output." },
+  backupBattery: { name: "Additional battery", kg: 95, description: "Covers the energy shortfall when solar generation falls." },
 }
 export const defaultManifest = {
   mealDays: 14, waterDays: 8, oxygenDays: 8, spareParts: 2, driedMealShare: .5,
   equipment: Object.keys(cargoOptions),
 }
 const baseHardware = [
-  { name: "Basınçlı yaşam modülü, hava kilidi ve kabin kontrolü", kg: 1800, module: "habitat" },
-  { name: "CO₂ tutucu, filtreler ve kabin havalandırması", kg: 155, module: "airScrubber" },
-  { name: "Güneş paneli", kg: 115, module: "solarPanel" },
-  { name: "Batarya", kg: 95, module: "battery" },
-  { name: "Su ve oksijen tankları, yemek ısıtıcısı ve dağıtıcı", kg: 160 },
-  { name: "Uzay giysileri, hava kilidi servis takımı ve kişisel ekipman", kg: 320 },
-  { name: "Tıbbi çanta, iletişim ve onarım araçları", kg: 105 },
+  { name: "Pressurized habitat, airlock and cabin controls", kg: 1800, module: "habitat" },
+  { name: "CO₂ scrubber, filters and cabin ventilation", kg: 155, module: "airScrubber" },
+  { name: "Solar panel", kg: 115, module: "solarPanel" },
+  { name: "Battery", kg: 95, module: "battery" },
+  { name: "Water and oxygen tanks, food heater and dispenser", kg: 160 },
+  { name: "Spacesuits, airlock service kit and personal equipment", kg: 320 },
+  { name: "Medical kit, communications and repair tools", kg: 105 },
 ]
 export const cargoLimitKg = 4000
 
@@ -32,7 +32,7 @@ export function planMission(manifest) {
       oxygenDays < 2 || oxygenDays > 20 || spareParts < 0 || spareParts > 6 ||
       ![0, .5, 1].includes(driedMealShare) || !Array.isArray(equipment) ||
       new Set(equipment).size !== equipment.length || !equipment.every(id => Object.hasOwn(cargoOptions, id))) {
-    throw new RangeError("Erzak ve donanım seçimlerini kontrol et.")
+    throw new RangeError("Check your supply and equipment selections.")
   }
 
   const crew = [1, 2, 3].map(index => ({ id: "astronaut-" + index, health: 100 }))
@@ -47,10 +47,10 @@ export function planMission(manifest) {
   const cargo = [
     ...baseHardware,
     ...equipment.map(id => ({ ...cargoOptions[id], module: ({ backupPower: "solarPanel", backupBattery: "battery" })[id] ?? id })),
-    { name: "Paketli öğünler", kg: mealDays * crew.length * solDays * (.95 - .3 * driedMealShare) },
-    { name: "İçme ve hazırlama suyu", kg: waterDays * crew.length * solDays * rates.water },
-    { name: "Depolanmış oksijen", kg: oxygenDays * crew.length * solDays * rates.oxygen },
-    { name: "Yedek parçalar", kg: spareParts * 16 },
+    { name: "Packaged meals", kg: mealDays * crew.length * solDays * (.95 - .3 * driedMealShare) },
+    { name: "Drinking and food preparation water", kg: waterDays * crew.length * solDays * rates.water },
+    { name: "Stored oxygen", kg: oxygenDays * crew.length * solDays * rates.oxygen },
+    { name: "Spare parts", kg: spareParts * 16 },
   ]
   const massKg = cargo.reduce((total, item) => total + item.kg, 0)
   return {

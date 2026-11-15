@@ -6,7 +6,7 @@ import { createSystemConsoles } from '../scene/system-consoles.mjs';
 /** IHAN-SRC — İhan's real a7d5ce6 installations and sera-demo airlock, hosted by the shared scene. */
 import * as T from 'three';
 import { createAirSystem } from './hava.mjs';
-import { createWaterSystem } from './su.mjs';
+import { createWaterSystem } from "./su.mjs";
 import { createGreenhouse } from './sera.mjs';
 import { COLONY_ENERGY_KWH, createLifeSupport, syncLifeSupport, lifeSupportTelemetry } from '../../sim/colonyLifeSupport.js';
 import { findAnimatedObjects, batchStaticLeaves } from '../scene/static-model.mjs';
@@ -76,13 +76,13 @@ export function createLifeSupportFacilities(scene, heightAt, initialState, habit
   }
   function prompt(camera) {
     if (airlock.active) {
-      if (airlock.phase==='ready'&&!facing(camera,airlock.targetZ===outerZ)) return 'İkinci kapıya bak';
+      if (airlock.phase==='ready'&&!facing(camera,airlock.targetZ===outerZ)) return "Look at the second door";
       return airlock.prompt;
     }
-    return near(camera) ? (inside ? 'E · Sera çıkış kapısını aç' : 'E · Sera giriş kapısını aç') : '';
+    return near(camera) ? (inside ? "E · Open greenhouse exit door" : "E · Open greenhouse entrance door") : '';
   }
   function draw() {
-    const t = electricalTelemetry(), n = value => value.toLocaleString('tr-TR', { maximumFractionDigits: 3 });
+    const t = electricalTelemetry(), n = value => value.toLocaleString("en-US", { maximumFractionDigits: 3 });
     const values = { oxygen: `${n(t.oxygenKg)} kg`, produced: `${n(t.air.generatedKg)} kg`, consumed: `${n(t.air.consumedKg)} kg`,
       co2: `${n(t.air.removedCO2Kg)} kg`, water: `${n(t.waterL)} L`, extracted: `${n(t.water.extractedL)} L`, recycled: `${n(t.water.recoveredL)} L`,
       power: `${n(t.powerKW)} / ${n(t.availableKW)} kW` };

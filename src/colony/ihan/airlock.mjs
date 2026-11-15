@@ -9,10 +9,10 @@ export function createAirlock({innerZ,outerZ,halfWidth,clearance=.25,setDoors}) 
     get targetZ(){return exiting?outerZ:innerZ},
     get prompt(){
       return {
-        entry:'Açık kapıdan hava kilidine yürü',
-        cycling:'Hava kilidi · Basınç eşitleniyor…',
-        ready:'E · Basınç hazır, ikinci kapıyı aç',
-        exit:'Açık kapıdan geç',
+        entry:"Walk through the open door into the airlock",
+        cycling:"Airlock · Equalizing pressure…",
+        ready:"E · Pressure ready, open the second door",
+        exit:"Walk through the open door",
       }[phase]??''
     },
     open(fromInside){

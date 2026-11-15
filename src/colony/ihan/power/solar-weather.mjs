@@ -24,15 +24,15 @@ export function advanceSolarWeather(weather,seconds){
 }
 
 export function startSolarSweep(weather,state,live,append){
-  if(weather.sweepElapsed!==null)return 'Silecekler zaten çalışıyor.'
-  if(!live||live.recovering)return 'Silecekler için şebeke hazır değil.'
+  if(weather.sweepElapsed!==null)return "Wipers already running."
+  if(!live||live.recovering)return "Grid not ready for wipers."
   // Recently stored daylight PV can fund a sweep while the night reserve is still charging.
   const floor=live.daylight?Math.min(live.reserve,Math.max(0,state.battery-weather.solarCleaningCredit)):live.reserve
-  if(!payForSweep(state,floor))return 'Silecekler için kullanılabilir batarya enerjisi yetersiz.'
+  if(!payForSweep(state,floor))return "Insufficient available battery energy for wipers."
   weather.solarCleaningCredit=0
   weather.sweepElapsed=0
   live.groups.forEach((group,index)=>{group.stored=state.banks[index];})
-  append?.('Panel temizliği başladı. Sıralar sırayla temizleniyor.')
+  append?.("Panel cleaning started. Rows are cleaned in sequence.")
   return null
 }
 
@@ -56,7 +56,7 @@ export function cleanSolarRows(weather,seconds,daylight,state,live,append){
   });
   if(weather.sweepElapsed>=SOLAR_SWEEP_SECONDS){
     weather.sweepElapsed=null;
-    append?.('Panel temizliği tamamlandı.');
+    append?.("Panel cleaning complete.");
   }
 }
 

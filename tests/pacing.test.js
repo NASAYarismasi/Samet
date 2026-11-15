@@ -87,6 +87,6 @@ it('runs the headless director with the actual warp guard and measures feasible 
 },20000);
 
 it('keeps the real mission clock and cruise calendar distinct from playback rate', () => {
-  expect(missionElapsed(258*86400+22*3600+20*60)).toBe('T+ 258 g 22 sa 20 dk');
-  expect(missionCalendar({phase:'CRUISE',cruiseProgress:131/258.87,transfer:{duration:258.87*86400}})).toBe('Seyir · 132. gün / 259');
+  expect(missionElapsed(258*86400+22*3600+20*60)).toBe("T+ 258 d 22 h 20 min");
+  expect(missionCalendar({phase:'CRUISE',cruiseProgress:131/258.87,transfer:{duration:258.87*86400}})).toBe("Cruise · Day 132 / 259");
 });

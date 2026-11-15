@@ -39,9 +39,9 @@ describe('cargo manifest → scene startup', () => {
     }
     const day=state.timeline.at(-1);
     expect(day.needs.cleanAir).toBe(true);
-    expect(day.systems).toContain('CO₂ tutucu çalıştı');
-    expect(day.systems).toContain('Atık sudan su geri kazanıldı');
-    expect(day.systems).toContain('Su elektrolizi oksijen sağladı');
+    expect(day.systems).toContain("CO₂ scrubber operated");
+    expect(day.systems).toContain("Water recovered from wastewater");
+    expect(day.systems).toContain("Water electrolysis supplied oxygen");
     expect(state.wastewater).toBeGreaterThan(0);
     expect(state.placed.every(item=>item.active)).toBe(true);
   });

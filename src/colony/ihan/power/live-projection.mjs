@@ -64,21 +64,21 @@ export function bindProjection(panel,capture) {
   if(!panel) return
   const form=panel.querySelector("form")
   const report=panel.querySelector("output")
-  const fmt=new Intl.NumberFormat("tr-TR",{maximumFractionDigits:2})
+  const fmt=new Intl.NumberFormat("en-US",{maximumFractionDigits:2})
   let running=false
   form.addEventListener("submit",async event=>{
     event.preventDefault()
     if(running) return
     const snapshot=capture()
     running=true
-    report.textContent="Aynı başlangıçla iki senaryo hesaplanıyor…"
+    report.textContent="Calculating two scenarios from the same starting state…"
     await new Promise(resolve=>setTimeout(resolve,25))
     try {
       const fields=["solar","stored","gap","water","oxygen","led"]
-      const units=["kWh","kWh","kWh","L","kg","sa"]
+      const units=["kWh","kWh","kWh","L","kg","h"]
       const table=document.createElement("table")
       const head=table.createTHead().insertRow()
-      for(const name of ["Sol","Sondaj","PV üretimi","Sabah depo","Habitat açığı","Çıkarılan su","Üretilen O₂","Sera ışığı"]){
+      for(const name of ["Sol","Drilling","PV generation","Morning storage","Habitat shortfall","Extracted water","Produced O₂","Greenhouse lighting"]){
         const th=document.createElement("th")
         th.scope="col"
         th.textContent=name
@@ -87,13 +87,13 @@ export function bindProjection(panel,capture) {
       const body=table.createTBody()
       for(const drill of [true,false]) projectPower(snapshot,drill).forEach((data,i)=>{
         const row=body.insertRow()
-        const values=[snapshot.sol+i+1,drill?"Açık":"Kapalı",
+        const values=[snapshot.sol+i+1,drill?"On":"Off",
           ...fields.map((field,index)=>fmt.format(data[field])+" "+units[index])]
         for(const value of values) row.insertCell().textContent=value
       })
       const start=document.createElement("p")
-      start.textContent="Başlangıç · Sol "+(snapshot.sol+1)+" · "+fmt.format(snapshot.hour)+
-        " saat · "+fmt.format(snapshot.state.battery)+" kWh · gruplar "+
+      start.textContent="Initial · Sol "+(snapshot.sol+1)+" · "+fmt.format(snapshot.hour)+
+        " hours · "+fmt.format(snapshot.state.battery)+" kWh · banks "+
         snapshot.state.banks.map(value=>fmt.format(value)).join(" / ")+" kWh"
       const scroll=document.createElement("div")
       scroll.className="power-table"

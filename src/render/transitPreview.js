@@ -47,7 +47,7 @@ export function createTransitPreview(){let ctx,scene,earth,mars,sky,vehicle,rig,
   const ring=new T.LineLoop(new T.BufferGeometry().setFromPoints(Array.from({length:160},(_,i)=>new T.Vector3(Math.cos(i/160*Math.PI*2)*28,Math.sin(i/160*Math.PI*2)*13,Math.sin(i/160*Math.PI*2)*17))),new T.LineBasicMaterial({color:0xe3b58a,transparent:true,opacity:.25}));ring.name='capture-ring';scene.add(ring);
   const earthRing=ring.clone();earthRing.name='earth-orbit';scene.add(earthRing);
 
-  caption=document.createElement('div');caption.className='preview-journey';caption.innerHTML='<span class="preview-earth">DÜNYA<small>KALKIŞ NOKTASI</small></span><div><b data-preview-title>GEZEGENLER ARASI SEYİR</b><small>3D sinematik önizleme · Ölçekler temsilidir</small></div><span class="preview-mars">MARS<small>VARIŞ</small></span>';document.body.append(caption);
+  caption=document.createElement('div');caption.className='preview-journey';caption.innerHTML="<span class=\"preview-earth\">EARTH<small>LAUNCH POINT</small></span><div><b data-preview-title>INTERPLANETARY CRUISE</b><small>3D cinematic preview · Representative scales</small></div><span class=\"preview-mars\">MARS<small>ARRIVAL</small></span>";document.body.append(caption);
  },update(pair,alpha){const s=interpolateState(pair.previous,pair.current,alpha);caption.hidden=false;ctx.cameras.update(s,ctx.frameDelta);const camera=ctx.cameras.camera;
   const capture=['MOI_BURN','MARS_ORBIT'].includes(s.phase),departure=['PARKING_ORBIT','TMI_BURN'].includes(s.phase);
   camera.position.set(0,35,155);camera.lookAt(0,2,0);camera.fov=camera.aspect<1.4?55:43;camera.updateProjectionMatrix();sky.update({...s,density:0},camera);
@@ -96,7 +96,7 @@ export function createTransitPreview(){let ctx,scene,earth,mars,sky,vehicle,rig,
   smoothHeading+=Math.atan2(Math.sin(rig.rotation.z-smoothHeading),Math.cos(rig.rotation.z-smoothHeading))*blend;
   rig.rotation.z=smoothHeading;
   flames.forEach(flame=>flame.material.uniforms.time.value=s.missionTime);route.visible=true;
-  caption.querySelector('[data-preview-title]').textContent=capture?s.phase==='MARS_ORBIT'?'MARS YÖRÜNGESİNE GİRİLDİ':'MARS YAKALAMA ATEŞLEMESİ':departure?'DÜNYA’DAN AYRILIŞ':'GEZEGENLER ARASI SEYİR';caption.classList.toggle('is-capture',capture);
+  caption.querySelector('[data-preview-title]').textContent=capture?s.phase==='MARS_ORBIT'?"MARS ORBIT ACHIEVED":"MARS CAPTURE BURN":departure?"EARTH DEPARTURE":"INTERPLANETARY CRUISE";caption.classList.toggle('is-capture',capture);
   this.state=s;this.audioDistance=80;
  },suspend(){if(caption)caption.hidden=true;hasPosition=false;},exit(){caption?.remove();if(scene)disposeScene(scene);flames=[];scene=null;}};
 }

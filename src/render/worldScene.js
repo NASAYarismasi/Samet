@@ -33,7 +33,7 @@ export function createWorldScene() {
         for(const [body,id]of [[earth,'earth'],[mars,'mars']]){body.group.visible=true;body.group.scale.setScalar(1e-5);body.group.position.set((s.heliocentric[id][0]-s.heliocentric.ship[0])*1e-5,0,(s.heliocentric[id][1]-s.heliocentric.ship[1])*1e-5);}
         sunDirection.set(-s.heliocentric.ship[0],0,-s.heliocentric.ship[1]).normalize();sun.position.copy(sunDirection.clone().multiplyScalar(500));sunDisk.position.copy(sunDirection.clone().multiplyScalar(2e7));
       }else{earth.group.scale.setScalar(1);mars.group.scale.setScalar(1);}
-      pad.update(s);vehicle.update(s,onboard,ctx.cameras.camera);cabin.update(s,onboard);effects.setQuality(ctx.quality==='Düşük'?.45:ctx.quality==='Orta'?.7:1);effects.update(s,ctx.height);
+      pad.update(s);vehicle.update(s,onboard,ctx.cameras.camera);cabin.update(s,onboard);effects.setQuality(ctx.quality==="Low"?.45:ctx.quality==="Medium"?.7:1);effects.update(s,ctx.height);
       const shield=s.heatShield;
       heatShield.visible=Boolean(shield&&!shield.impacted&&!onboard);
       if(heatShield.visible){

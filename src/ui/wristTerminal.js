@@ -8,12 +8,12 @@ import { MOXIE_TANK_KG } from '../colony/ihan/power/live-grid.mjs';
 import './wrist.css';
 
 const format = (value, digits = 1) => Number.isFinite(value)
-  ? value.toLocaleString('tr-TR', { maximumFractionDigits: digits, minimumFractionDigits: digits }) : '—';
+  ? value.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }) : '—';
 const reading = (value, unit, digits = 1) => Number.isFinite(value) ? `${format(value, digits)} ${unit}` : '—';
 const escape = value => String(value ?? '—').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const row = (label, value) => `<div class="ares-row"><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`;
 const card = (label, value, note = '') => `<div class="ares-card"><small>${escape(label)}</small><strong>${escape(value)}</strong>${note ? `<span>${escape(note)}</span>` : ''}</div>`;
-const resourceNames = { oxygen: 'O₂ / OKSİJEN', water: 'SU', food: 'GIDA' };
+const resourceNames = { oxygen: "O₂ / OXYGEN", water: "WATER", food: "FOOD" };
 
 function screenMarkup(data, screen) {
   const colony = data.mode === 'colony';
@@ -21,26 +21,26 @@ function screenMarkup(data, screen) {
   if (screen === 1) {
     return `<div class="ares-resource-grid">${Object.entries(resourceNames).map(([key, label]) => {
       const resource = data.resources?.[key] ?? {};
-      return card(label, reading(colony ? resource.sols : resource.days, colony ? 'sol' : 'gün'),
-        colony ? `${reading(resource.personSols, 'kişi-sol')} · ${reading(resource.days, 'Dünya günü')}` : reading(resource.kg, 'kg'));
-    }).join('')}</div><p class="ares-note">${colony ? `${data.livingCrew} yaşayan mürettebatın tüketimine göre. Üretim kredisi dahil değildir.` : `${data.crew?.length ?? 0} kişi · NASA Ames günlük tüketim referansı · geri kazanım kredisi yok.`}</p>`;
+      return card(label, reading(colony ? resource.sols : resource.days, colony ? 'sol' : "days"),
+        colony ? `${reading(resource.personSols, "person-sols")} · ${reading(resource.days, "Earth days")}` : reading(resource.kg, 'kg'));
+    }).join('')}</div><p class="ares-note">${colony ? `${data.livingCrew} based on living crew consumption. Production credits are not included.` : `${data.crew?.length ?? 0} people · NASA Ames daily consumption reference · no recovery credit.`}</p>`;
   }
   if (screen === 2) {
     if (colony) {
       const energy = data.energy ?? {};
-      return `<dl>${row('Aktif görev', data.activeTask)}${row('Hava', data.stormLabel)}${row('Son sol üretim / tüketim', `${reading(energy.generation, 'birim')} / ${reading(energy.used, 'birim')}`)}${row('Batarya / kapasite', `${reading(energy.battery, 'birim')} / ${reading(energy.capacity, 'birim')}`)}${row('Başlangıç enerjisi', reading(energy.startup, 'birim'))}${row('Güneş yüksekliği', reading(data.sunElevationDeg, '°'))}${row('Baş lambası / L', data.headlamp === null ? 'Veri bekleniyor' : data.headlamp ? 'Açık' : 'Kapalı')}</dl>`;
+      return `<dl>${row("Active mission", data.activeTask)}${row("Weather", data.stormLabel)}${row("Last sol production / consumption", `${reading(energy.generation, "units")} / ${reading(energy.used, "units")}`)}${row("Battery / capacity", `${reading(energy.battery, "units")} / ${reading(energy.capacity, "units")}`)}${row("Initial energy", reading(energy.startup, "units"))}${row("Sun elevation", reading(data.sunElevationDeg, '°'))}${row("Headlamp / L", data.headlamp === null ? "Awaiting data" : data.headlamp ? "On" : "Off")}</dl>`;
     }
     const nav = data.navigation ?? {};
-    return `<div class="ares-nav-grid">${card(nav.distanceLabel, reading(nav.distance, nav.distanceUnit, nav.distanceUnit === 'AU' ? 3 : 1))}${card(nav.velocityLabel, reading(nav.velocity, nav.velocityUnit, 2))}</div><dl>${row('Uçuş fazı', data.phaseLabel)}${row('Sonraki olay', data.nextEvent)}</dl>`;
+    return `<div class="ares-nav-grid">${card(nav.distanceLabel, reading(nav.distance, nav.distanceUnit, nav.distanceUnit === 'AU' ? 3 : 1))}${card(nav.velocityLabel, reading(nav.velocity, nav.velocityUnit, 2))}</div><dl>${row("Flight phase", data.phaseLabel)}${row("Next event", data.nextEvent)}</dl>`;
   }
   if (screen === 3) {
-    return `<div class="ares-crew">${(data.crew ?? []).map(person => `<article><div><b>${escape(person.name)}</b><span>${escape(person.roleLabel)}</span></div><strong>${person.alive ? reading(person.health, '%', 0) : 'YAŞAM BULGUSU YOK'}</strong></article>`).join('') || '<p class="ares-note">Mürettebat verisi bekleniyor.</p>'}</div><p class="ares-note">${data.livingCrew ?? 0} yaşayan mürettebat · sağlık görev simülasyonundan alınır.</p>`;
+    return `<div class="ares-crew">${(data.crew ?? []).map(person => `<article><div><b>${escape(person.name)}</b><span>${escape(person.roleLabel)}</span></div><strong>${person.alive ? reading(person.health, '%', 0) : "NO VITAL SIGNS"}</strong></article>`).join('') || "<p class=\"ares-note\">Awaiting crew data.</p>"}</div><p class="ares-note">${data.livingCrew ?? 0} living crew · health comes from the mission simulation.</p>`;
   }
   const remaining = Object.values(data.resources ?? {}).map(resource => colony ? resource.sols : resource.days).filter(Number.isFinite);
   const limit = remaining.length ? Math.min(...remaining) : null;
-  return `<div class="ares-status-grid">${card(colony ? 'MARS YEREL SAATİ / LMST' : 'GÖREV ZAMANI / MET', colony ? data.lmst ?? '—' : data.met,
-    colony ? `SOL ${format(data.sol, 0)}` : data.phaseLabel)}${card('YAŞAM DESTEĞİ / EN AZ', reading(limit, colony ? 'sol' : 'gün'), `${data.livingCrew ?? 0} yaşayan mürettebat`)}</div>
-    <dl>${row(colony ? 'Hava durumu' : 'Kabin güç hattı', colony ? data.stormLabel : data.power?.enabled === null ? 'Veri bekleniyor' : data.power?.enabled ? 'Devrede' : 'Kapalı')}${row(colony ? 'Aktif görev' : 'Sonraki olay', data.nextEvent)}</dl>`;
+  return `<div class="ares-status-grid">${card(colony ? "MARS LOCAL TIME / LMST" : "MISSION TIME / MET", colony ? data.lmst ?? '—' : data.met,
+    colony ? `SOL ${format(data.sol, 0)}` : data.phaseLabel)}${card("LIFE SUPPORT / MINIMUM", reading(limit, colony ? 'sol' : "days"), `${data.livingCrew ?? 0} living crew`)}</div>
+    <dl>${row(colony ? "Weather" : "Cabin power bus", colony ? data.stormLabel : data.power?.enabled === null ? "Awaiting data" : data.power?.enabled ? "Online" : "Off")}${row(colony ? "Active mission" : "Next event", data.nextEvent)}</dl>`;
 }
 
 function colonyDashboard(data,screen) {
@@ -51,25 +51,26 @@ function colonyDashboard(data,screen) {
   const oxygen=grid?.state?.oxygen;
   const oxygenLevel=Math.floor(oxygen/MOXIE_TANK_KG*1000)/100;
   const oxygenReserve=Number.isFinite(oxygenLevel)?`${format(oxygenLevel,oxygenLevel===10?0:2)} / 10`:'—';
-  if(screen===3)return `<div class="ops-heading"><b>MÜRETTEBAT</b><span>${data.livingCrew} kişi görevde</span></div><div class="ares-crew">${(data.crew??[]).map(p=>`<article><div><b>${escape(p.name)}</b><span>${escape(p.roleLabel)}</span></div><strong>${p.alive?reading(p.health,'%',0):'YAŞAM BULGUSU YOK'}</strong></article>`).join('')}</div>`;
-  if(screen===2)return `<div class="ops-heading"><b>ELEKTRİK VE ENERJİ TÜKETİMİ</b></div>
+  if(screen===3)return `<div class="ops-heading"><b>CREW</b><span>${data.livingCrew} crew on duty</span></div><div class="ares-crew">${(data.crew??[]).map(p=>`<article><div><b>${escape(p.name)}</b><span>${escape(p.roleLabel)}</span></div><strong>${p.alive?reading(p.health,'%',0):"NO VITAL SIGNS"}</strong></article>`).join('')}</div>`;
+  if(screen===2)return `<div class="ops-heading"><b>ELECTRICITY AND ENERGY CONSUMPTION</b></div>
     <div class="ops-grid">
-      ${tile('GÜNEŞTEN GELEN',reading(flow?.solar,'kW',2),`Baraya ${reading(flow?.solarToBus,'kW',2)}`)}
-      ${tile('ANLIK TÜKETİM',reading(flow?.totalConsumption,'kW',2),`Toplam tüketilen ${reading(t.spentKWh,'kWh',2)}`)}
-      ${tile('BATARYA REZERVİ',reading(battery,'kWh',2),`Kapasite ${GRID.capacity} kWh`,'amber')}
-      ${tile('GEREKEN GECE REZERVİ',reading(grid?.live?.reserve,'kWh',2), 'Habitat, ısıtma ve sera','amber')}
+      ${tile("SOLAR INPUT",reading(flow?.solar,'kW',2),`To bus ${reading(flow?.solarToBus,'kW',2)}`)}
+      ${tile("CURRENT CONSUMPTION",reading(flow?.totalConsumption,'kW',2),`Total consumed ${reading(t.spentKWh,'kWh',2)}`)}
+      ${tile("BATTERY RESERVE",reading(battery,'kWh',2),`Capacity ${GRID.capacity} kWh`,'amber')}
+      ${tile("REQUIRED NIGHT RESERVE",reading(grid?.live?.reserve,'kWh',2), "Habitat, heating and greenhouse",'amber')}
     </div><dl>
-      ${row('Bataryaya giren / çıkan',`${reading(flow?.charging,'kW',2)} / ${reading(flow?.totalDischarge,'kW',2)}`)}
-      ${row('Kablo / dönüşüm kaybı',`${reading(flow?.feederLoss,'kW',2)} / ${reading(flow?.totalConversionLoss,'kW',2)}`)}
-      ${row('Kullanılamayan güneş gücü',reading(flow?.curtailed,'kW',2))}
+      ${row("Battery charge / discharge",`${reading(flow?.charging,'kW',2)} / ${reading(flow?.totalDischarge,'kW',2)}`)}
+      ${row("Cable / conversion loss",`${reading(flow?.feederLoss,'kW',2)} / ${reading(flow?.totalConversionLoss,'kW',2)}`)}
+      ${row("Curtailed solar power",reading(flow?.curtailed,'kW',2))}
     </dl>`;
-  if(screen===1)return `<div class="ops-heading"><b>YAŞAM DESTEĞİ</b></div><div class="ops-grid">
-    ${tile('BUZDAN ÇIKARILAN SU',reading(water.extractedL,'L'),'Görev toplamı','blue')}
-    ${tile('TEMİZ SU REZERVİ',waterReserve,`${reading(t.waterL,'L')} / ${TANK_L} L`,'blue')}
-    ${tile('MOXIE O₂ ÜRETİMİ',reading(grid?.state?.oxygenProduced,'kg',3),'Görev toplamı')}
-    ${tile('MOXIE O₂ REZERVİ',oxygenReserve,`${reading(oxygen,'kg',3)} / ${MOXIE_TANK_KG} kg`)}
-    </div><dl>${row('Habitat oksijen rezervi',reading(t.oxygenKg,'kg',3))}${row('Geri kazanılan su',reading(water.recoveredL,'L'))}${row('Atık su',reading(water.wasteL,'L'))}${row('Giderilen CO₂',reading(air.removedCO2Kg,'kg'))}</dl>`;
-  return `<div class="ops-heading"><b>ÜS KONTROL MERKEZİ</b><span>LMST ${escape(data.lmst??'—')}</span></div><div class="ops-grid">${tile('REZERV SU',reading(t.waterL,'L'),`Üretilen ${reading(water.extractedL,'L')}`,'blue')}${tile('REZERV OKSİJEN',reading(t.oxygenKg,'kg'),`Üretilen ${reading(air.generatedKg,'kg')}`)}${tile('TESİS GÜCÜ',reading(t.powerKW,'kW'),`Bütçe ${reading(t.availableKW,'kW')}`,'amber')}${tile('BATARYA',reading(battery,'kWh'),`Kapasite ${GRID.capacity} kWh`,'amber')}</div><div class="ops-task"><small>AKTİF GÖREV</small><b>${escape(data.activeTask)}</b></div>`;
+  if(screen===1)return `<div class="ops-heading"><b>LIFE SUPPORT</b></div><div class="ops-grid">
+    ${tile("WATER EXTRACTED FROM ICE",reading(water.extractedL,'L'),"Mission total",'blue')}
+    ${tile("CLEAN WATER RESERVE",waterReserve,`${reading(t.waterL,'L')} / ${TANK_L} L`,'blue')}
+    ${tile("TOTAL O₂ PRODUCED",reading(grid?.state?.oxygenProduced,'kg',3),"MOXIE · Mission total")}
+    ${tile("CURRENT MOXIE O₂",reading((grid?.live?.gas?.oxygenKgHour??0)*1000,"g/h",1),"27 units · 3 × 9")}
+    ${tile("MOXIE O₂ RESERVE",oxygenReserve,`${reading(oxygen,'kg',3)} / ${MOXIE_TANK_KG} kg`)}
+    </div><dl>${row("Habitat oxygen reserve",reading(t.oxygenKg,'kg',3))}${row("Recovered water",reading(water.recoveredL,'L'))}${row("Wastewater",reading(water.wasteL,'L'))}${row("CO₂ removed",reading(air.removedCO2Kg,'kg'))}</dl>`;
+  return `<div class="ops-heading"><b>BASE CONTROL CENTER</b><span>LMST ${escape(data.lmst??'—')}</span></div><div class="ops-grid">${tile("WATER RESERVE",reading(t.waterL,'L'),`Produced ${reading(water.extractedL,'L')}`,'blue')}${tile("OXYGEN RESERVE",reading(t.oxygenKg,'kg'),`Produced ${reading(air.generatedKg,'kg')}`)}${tile("FACILITY POWER",reading(t.powerKW,'kW'),`Budget ${reading(t.availableKW,'kW')}`,'amber')}${tile("BATTERY",reading(battery,'kWh'),`Capacity ${GRID.capacity} kWh`,'amber')}</div><div class="ops-task"><small>ACTIVE MISSION</small><b>${escape(data.activeTask)}</b></div>`;
 }
 
 /**
@@ -80,7 +81,7 @@ export function mountWristTerminal({ root, getData, onToggle = () => {}, surface
   const doc = root.ownerDocument, win = doc.defaultView;
   const host = doc.createElement('aside');
   host.className = 'ares-wrist';
-  host.setAttribute('aria-label', 'KERK kol bilgisayarı');
+  host.setAttribute('aria-label', "KERK wrist computer");
   host.setAttribute('aria-hidden', 'true');
   const artBase = `${import.meta.env.BASE_URL}art/`;
   host.innerHTML = `<div class="ares-arm" inert><div class="ares-hold">
@@ -88,9 +89,9 @@ export function mountWristTerminal({ root, getData, onToggle = () => {}, surface
       <div class="ares-hardware" aria-hidden="true"><span>KERK / EVA</span><i></i><i></i><i></i><b>IV</b></div>
       <div class="ares-screen"><header class="ares-header"><b><i></i> KERK <span>MARK-IV</span></b><button type="button" class="ares-close" aria-label="Kolu indir">ESC ×</button></header>
       <div class="ares-location"><span data-ares-phase></span><time data-ares-clock></time></div>
-      <nav class="ares-tabs" aria-label="Terminal ekranları">${['DURUM', 'YAŞAM DESTEĞİ', 'SEYİR', 'MÜRETTEBAT'].map((name, index) => `<button type="button" data-ares-tab="${index}" aria-pressed="${index === 0}">${name}</button>`).join('')}</nav>
-      <p class="ares-notice" aria-live="polite"></p><div class="ares-content"></div><div class="ares-panel-slot" hidden></div><footer class="ares-footer"><span>${surfaceShortcuts?'ALT':'TAB'} · TABLETİ KAPAT</span><span>TEKERLEK · SAYFA</span><b data-ares-page>01 / 04</b></footer></div>
-      <div class="ares-case-label" aria-hidden="true">EVA · GÖREV TERMİNALİ <span>KERK—01</span></div>
+      <nav class="ares-tabs" aria-label="Terminal screens">${["STATUS", "LIFE SUPPORT", "CRUISE", "CREW"].map((name, index) => `<button type="button" data-ares-tab="${index}" aria-pressed="${index === 0}">${name}</button>`).join('')}</nav>
+      <p class="ares-notice" aria-live="polite"></p><div class="ares-content"></div><div class="ares-panel-slot" hidden></div><footer class="ares-footer"><span>TAB · CLOSE TABLET</span><span>WHEEL · PAGE</span><b data-ares-page>01 / 04</b></footer></div>
+      <div class="ares-case-label" aria-hidden="true">EVA · MISSION TERMINAL <span>KERK—01</span></div>
     </section>
     <img class="ares-grip ares-grip-front" src="${artBase}eva-gloves.png" alt="" aria-hidden="true" draggable="false" width="900" height="620">
     </div></div>`;
@@ -109,12 +110,12 @@ export function mountWristTerminal({ root, getData, onToggle = () => {}, surface
   function update() {
     if (!raised || disposed) return;
     const data = getData();host.setAttribute('data-light',data?.mode==='colony'?'mars':'cabin');
-    const markup = data ? screenMarkup(data, screen) : '<p class="ares-note">Telemetri bağlantısı bekleniyor.</p>';
+    const markup = data ? screenMarkup(data, screen) : "<p class=\"ares-note\">Awaiting telemetry connection.</p>";
     if (markup !== lastMarkup) { content.innerHTML = markup; lastMarkup = markup; }
-    phase.textContent = data?.mode === 'colony' ? `JEZERO · SOL ${format(data.sol, 0)}` : data?.phaseLabel ?? 'VERİ BEKLENİYOR';
+    phase.textContent = data?.mode === 'colony' ? `JEZERO · SOL ${format(data.sol, 0)}` : data?.phaseLabel ?? "AWAITING DATA";
     // Samet's live clock remains a clearly labelled Earth UTC clock, separate from MET / LMST.
     clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
-    tabs.forEach((tab,i)=>tab.textContent=(data?.mode==='colony'?['GENEL BAKIŞ','SU & OKSİJEN','ENERJİ','MÜRETTEBAT']:['DURUM','YAŞAM DESTEĞİ','SEYİR','MÜRETTEBAT'])[i]);
+    tabs.forEach((tab,i)=>tab.textContent=(data?.mode==='colony'?["OVERVIEW","WATER & OXYGEN","ENERGY","CREW"]:["STATUS","LIFE SUPPORT","CRUISE","CREW"])[i]);
   }
   function setRaised(value, notify = false) {
     if (disposed || raised === Boolean(value)) return;
@@ -143,7 +144,7 @@ export function mountWristTerminal({ root, getData, onToggle = () => {}, surface
     const editable = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName) || event.target?.isContentEditable;
     const close = event.key === 'Escape' || event.code === 'Escape';
     const toggleKey = event.key === 'Tab' || event.code === 'Tab' ||
-      surfaceShortcuts && ['AltLeft', 'AltRight', 'KeyQ'].includes(event.code);
+      surfaceShortcuts && ['KeyQ'].includes(event.code);
     if (!canToggle()) return;
     if (editable && !close || event.metaKey || event.ctrlKey) return;
     if (!(toggleKey || raised && close)) return;

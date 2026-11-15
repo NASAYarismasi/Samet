@@ -107,21 +107,23 @@ export function createEffects(scene) {
     const config=vehicleConfiguration(s);
     const clock=s.missionTime+(s.phase==='PRELAUNCH'?s.countdown.time:0)+(s.phase==='LANDED'?landingSequence.elapsed??0:0);
     const dt=lastTime===null?0:Math.max(0,clock-lastTime);lastTime=clock;
-    rig.rotation.z=s.phase==='EDL'?(s.thrustAngle??0):s.attitude+s.theta;rig.position.set(0,0,0).applyAxisAngle(new THREE.Vector3(0,0,1),rig.rotation.z);
+    // GAME ASSUMPTION: faint entry pilot plumes are visual only; descent thrust remains simulation-driven.
+    const entryPilot=s.phase==='EDL'&&!s.engineFiring;
+    rig.rotation.z=s.phase==='EDL'?(s.engineFiring?s.thrustAngle??0:Math.atan2(Math.sqrt(Math.max(0,s.surfaceVelocity**2-s.verticalSpeed**2)),-s.verticalSpeed)):s.attitude+s.theta;rig.position.set(0,0,0).applyAxisAngle(new THREE.Vector3(0,0,1),rig.rotation.z);
     const launch=['PRELAUNCH','ASCENT'].includes(s.phase),solid=launch&&s.phase==='ASCENT'&&s.stages.find(p=>p.id==='srb').attached;
     const core=launch&&s.stages.find(p=>p.id==='core').attached&&(s.engineFiring&&s.throttle>0||s.countdown.running&&s.countdown.time>=-6.5);
     const pressure=Math.max(0,Math.min(1,s.pressure/P0)),expand=Math.min(4,Math.pow(P0/Math.max(10,s.pressure),.16));
     const pre=s.phase==='PRELAUNCH'?Math.min(1,(s.countdown.time+6.5)/5):1;
     for(const {type,m}of jets) {
-      const active=type==='srb'?solid:type==='rs25'?core:type==='icps'?s.phase==='ASCENT'&&!s.stages.find(p=>p.id==='core').attached&&s.engineFiring:type==='retro'?s.phase==='EDL'&&s.engineFiring:config.ntrBurn;
+      const active=type==='srb'?solid:type==='rs25'?core:type==='icps'?s.phase==='ASCENT'&&!s.stages.find(p=>p.id==='core').attached&&s.engineFiring:type==='retro'?s.phase==='EDL':config.ntrBurn;
       m.visible=active;if(!active)continue;
-      const power=type==='srb'?Math.min(1,(s.thrust??3e7)/3e7):Math.max(.08,(s.throttle??1)*pre);
+      const power=type==='retro'&&entryPilot?.14+.025*Math.sin(s.missionTime*5):type==='srb'?Math.min(1,(s.thrust??3e7)/3e7):Math.max(.08,(s.throttle??1)*pre);
       const radius=type==='srb'?3.3:type==='rs25'?1.5:type==='retro'?1:type==='transit'?1.25:2;
       const length=type==='srb'?70:type==='rs25'?27:type==='retro'?15:type==='transit'?14:30;
       // GAME ASSUMPTION: a very faint blue visibility cue for hot hydrogen;
       // NTR uses reactor heat, not combustion. No orange flame/Mach diamonds.
       // https://www.nasa.gov/space-technology-mission-directorate/tdm/space-nuclear-propulsion/
-      m.scale.set(radius*expand,length*(type==='retro'?.2+power*.8:.65+power*.35),radius*expand);m.material.uniforms.time.value=s.missionTime+(s.phase==='PRELAUNCH'?s.countdown.time:0);// Methalox retro plumes are faint in Martian daylight; the NTR hydrogen plume nearly invisible.
+      m.scale.set(radius*expand*(type==='retro'&&entryPilot?.3:1),length*(type==='retro'?.2+power*.8:.65+power*.35),radius*expand*(type==='retro'&&entryPilot?.3:1));m.material.uniforms.time.value=s.missionTime+(s.phase==='PRELAUNCH'?s.countdown.time:0);// Methalox retro plumes are faint in Martian daylight; the NTR hydrogen plume nearly invisible.
       m.material.uniforms.power.value=type==='transit'?power*.055:type==='retro'?power*.3:power;m.material.uniforms.pressure.value=pressure;
     }
     engineLight.position.y=s.mars?1.5:-3;

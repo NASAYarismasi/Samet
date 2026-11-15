@@ -6,7 +6,7 @@ import {GRID, SOL_HOURS, solarDay, feederLoss, LED_KW, IRRIGATION_KW, IRRIGATION
 const BANK_CAPACITY=GRID.capacity/5
 const TIE_LIMIT_KW=8
 export const MOXIE_BANKS=3
-export const MOXIE_MODULES_PER_BANK=3
+export const MOXIE_MODULES_PER_BANK=9
 const MOXIE_MODULES=MOXIE_BANKS*MOXIE_MODULES_PER_BANK
 // https://pmc.ncbi.nlm.nih.gov/articles/PMC9432831/
 export const MOXIE_KW=MOXIE_MODULES*.3

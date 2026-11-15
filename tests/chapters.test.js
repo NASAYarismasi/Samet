@@ -6,11 +6,11 @@ import { bootstrap } from '../src/core/app.js';
 vi.mock('../src/render/assets.js',()=>({loadAssets:async()=>({failures:[],dispose(){}})}));
 vi.mock('../src/core/audio.js',()=>({createAudio:()=>({setVolume:vi.fn(),start(){},reset(){},update(){},dispose(){},muted:true})}));
 vi.mock('../src/render/renderer.js',()=>({createRenderer:()=>({
-  canvas:{},height:720,quality:'Orta',ratio:1,draw(){},dispose(){},
+  canvas:{},height:720,quality:"Medium",ratio:1,draw(){},dispose(){},
   renderer:{setAnimationLoop(){},info:{render:{calls:0,triangles:0},memory:{}}}
 })}));
 vi.mock('../src/render/cameras.js',()=>({createCameras:()=>({
-  selected:0,effective:0,name:'Takip',select(i){this.selected=i;},cycle(){this.selected=(this.selected+1)%6;},dispose(){}
+  selected:0,effective:0,name:"Follow",select(i){this.selected=i;},cycle(){this.selected=(this.selected+1)%6;},dispose(){}
 })}));
 vi.mock('../src/render/sceneManager.js',()=>({createSceneManager:()=>({
   active:null,update(pair){this.active={scene:{},state:pair.current};return this.active;},exit(){this.active=null;}
@@ -71,7 +71,7 @@ it('opens ?bolum=inis once, keeps reset on the title, and preserves the direct c
   window.location.search='?bolum=inis';
   await bootstrap();
   expect(state()).toMatchObject({chapter:'mars-orbit',titleScreen:false,phase:'MARS_ORBIT'});
-  expect(root.innerHTML).toContain('<section id="launch-card" aria-label="Ana menü" hidden>');
+  expect(root.innerHTML).toContain("<section id=\"launch-card\" aria-label=\"Main menu\" hidden>");
   expect(typeof window.missionControl.startChapter).toBe('function');
   expect(()=>window.missionControl.startChapter('invalid')).toThrow(RangeError);
   expect(state().phase).toBe('MARS_ORBIT');

@@ -69,9 +69,9 @@ export function createMapScene(){let ctx,scene,sky,earth,mars,sun,marker,arrival
     iconPart(transitIcon,new THREE.ConeGeometry(.8,1.6,12),tan,0,-3.2).rotation.x=-Math.PI/2;
     iconPart(transitIcon,new THREE.ConeGeometry(.8,1,12),tan,0,4.4).rotation.x=-Math.PI/2;
     iconPart(landerIcon,new THREE.CylinderGeometry(1.35,1.5,.5,16),tan,0,-1.3);
-    arrival=new THREE.Mesh(new THREE.TorusGeometry(3,.3,8,40),new THREE.MeshBasicMaterial({color:0xf0bd8a}));arrival.rotation.x=Math.PI/2;scene.add(arrival);arrivalLabel=label('MARS VARIŞI','#f0bd8a');arrivalLabel.scale.multiplyScalar(3);scene.add(arrivalLabel);
-    earthLabel=label('DÜNYA','#86c8eb');marsLabel=label('MARS','#edaf84');
-    shipLabels={launch:label('SLS / ORION','#9ce7d7'),transit:label('MTV / ORION + ÖNCÜ','#9ce7d7'),lander:label('ÖNCÜ / İNİŞ ARACI','#9ce7d7')};
+    arrival=new THREE.Mesh(new THREE.TorusGeometry(3,.3,8,40),new THREE.MeshBasicMaterial({color:0xf0bd8a}));arrival.rotation.x=Math.PI/2;scene.add(arrival);arrivalLabel=label("MARS ARRIVAL",'#f0bd8a');arrivalLabel.scale.multiplyScalar(3);scene.add(arrivalLabel);
+    earthLabel=label("EARTH",'#86c8eb');marsLabel=label('MARS','#edaf84');
+    shipLabels={launch:label('SLS / ORION','#9ce7d7'),transit:label("MTV / ORION + PIONEER",'#9ce7d7'),lander:label("PIONEER / LANDER",'#9ce7d7')};
     for(const l of [earthLabel,marsLabel,...Object.values(shipLabels)])l.scale.multiplyScalar(3);scene.add(earthLabel,marsLabel,...Object.values(shipLabels));
   },update(pair,alpha){const s=interpolateState(pair.previous,pair.current,alpha),solar=s.phase==='CRUISE'||s.phase==='MOI_BURN';const nextMode=solar?'solar':s.mars?'mars':'earth';const camera=ctx.cameras.camera;ctx.cameras.update(s,ctx.frameDelta);camera.position.set(0,solar?260:210,solar?340:250);camera.lookAt(0,0,0);camera.fov=46;camera.updateProjectionMatrix();
     const config=vehicleConfiguration(s);

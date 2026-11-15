@@ -121,9 +121,9 @@ describe('FPS movement and terrain contracts', () => {
     const fps=createFirstPerson(canvas,camera,{onMode:()=>{},onAim:()=>{},interact:()=>{},accessRoof:()=>{},collides:()=>false,groundY:()=>0,onStep});
     dispose=()=>fps.dispose(); fps.setActive(true);
     const z=camera.position.z; key('KeyW'); fps.update(1);
-    expect(z-camera.position.z).toBeCloseTo(1.2,2); expect(onStep).toHaveBeenCalled();
+    expect(z-camera.position.z).toBeCloseTo(1.8,2); expect(onStep).toHaveBeenCalled();
     key('ShiftLeft'); const walkZ=camera.position.z; fps.update(1);
-    expect(walkZ-camera.position.z).toBeCloseTo(3.0,2);
+    expect(walkZ-camera.position.z).toBeCloseTo(4.5,2);
     key('Tab'); const stopZ=camera.position.z; fps.update(1); expect(camera.position.z).toBe(stopZ);
     key('Space'); fps.update(.2); expect(camera.position.y).toBeGreaterThan(1.8); expect(fps.telemetry.grounded).toBe(false);
     fps.update(1); expect(camera.position.y).toBeCloseTo(1.65,5); expect(fps.telemetry.grounded).toBe(true);

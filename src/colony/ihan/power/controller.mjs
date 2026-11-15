@@ -34,7 +34,7 @@ export function createPowerController({blackStart=true,firstStormDelay,initialEn
     startSweep(){
       const message=startSolarSweep(weather,state,live,append);
       if(message)append(message);
-      return message??'Silecekler başlatıldı.';
+      return message??"Wipers started.";
     },
     syncWater(water){state.water=water.cleanL;state.iceKg=water.iceKg;},
     beginRoverFrame(){roverKW=0;},
@@ -84,13 +84,13 @@ export function createPowerController({blackStart=true,firstStormDelay,initialEn
         const midpoint=hour+seconds/7200;
         const previousOpacity=weather.opacity;
         advanceSolarWeather(weather,seconds);
-        if(previousOpacity<.35&&weather.opacity>=.35)append("Toz cephesi yaklaşıyor. Panel üretimi düşüyor.");
-        if(previousOpacity>=.35&&weather.opacity<.35)append("Toz cephesi uzaklaşıyor.");
+        if(previousOpacity<.35&&weather.opacity>=.35)append("Dust front approaching. Panel generation is falling.");
+        if(previousOpacity>=.35&&weather.opacity<.35)append("Dust front receding.");
         const solar=useSceneSun?marsSun(clock-remaining+seconds/2):null;
         const daylight=solar?solar.elevation>0:midpoint<day.daylight;
         const geometry=solar?solarGeometry(solar,daylight):null;
         if(lastDaylight!==null&&daylight!==lastDaylight)
-          append(daylight?'Gün doğdu · PV üretimi başladı.':'Gün battı · PV sıfır, gece beslemesi bataryadan.');
+          append(daylight?"Sunrise · PV generation started.":"Sunset · PV at zero, batteries supply the night loads.");
         lastDaylight=daylight;
         const opts={...options(controls.lamp&&lamp,irrigation,ledMode),geometry,waterBeforeDrilling};
         live=(controls.blackStart?recovery.step(state,daylight,seconds,append):null)

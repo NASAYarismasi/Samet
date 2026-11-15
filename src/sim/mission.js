@@ -47,7 +47,7 @@ export function createMission({ crewCount = 3, supplyDuration = 320 * DAY, suppl
     state.time += supported; state.phaseTime += supported;
     if (supported < dt - 1e-8) {
       state.crew.forEach(c => { c.health = 0; });
-      fail('Yaşam destek erzakları tükendi.'); return false;
+      fail("Life support supplies depleted."); return false;
     }
     return true;
   }
@@ -64,7 +64,7 @@ export function createMission({ crewCount = 3, supplyDuration = 320 * DAY, suppl
         state.orbitState = elementsToState({ a: MARS.radius + 250000, e: 0 }, MARS.mu);
         transition('MARS_ORBIT');
       }
-    } else if (state.transit.propellant <= 0) fail('Transfer aracının yakıtı tükendi.');
+    } else if (state.transit.propellant <= 0) fail("Transfer vehicle propellant depleted.");
   }
   /** Advance an analytical unpowered coast in exact multiples of the fixed physics tick.
    * CRUISE ends only at the Hohmann arrival time, not a UI presentation timer.
@@ -95,7 +95,7 @@ export function createMission({ crewCount = 3, supplyDuration = 320 * DAY, suppl
     if (state.phase === 'ASCENT') {
       ascent.step(dt);
       if (ascent.state.status === 'ORBIT') { state.orbitState = polarState(ascent.state.vector); transition('PARKING_ORBIT'); }
-      if (ascent.state.status === 'FAILED') fail('Kalkış güvenli yörüngeye ulaşamadı.');
+      if (ascent.state.status === 'FAILED') fail("Launch failed to reach a safe orbit.");
     } else if (['TMI_BURN', 'MOI_BURN'].includes(state.phase)) burnStep(dt);
     else if (state.phase === 'DEORBIT') {
       state.orbitState = propagateKepler(state.orbitState, dt, MARS.mu);
@@ -109,7 +109,7 @@ export function createMission({ crewCount = 3, supplyDuration = 320 * DAY, suppl
     } else if (state.phase === 'EDL') {
       state.edl.step(dt);
       if (state.edl.state.status === 'LANDED') transition('LANDED');
-      if (state.edl.state.status === 'FAILED') fail('İniş aracı güvenli temas sağlayamadı.');
+      if (state.edl.state.status === 'FAILED') fail("The lander failed to achieve a safe touchdown.");
     }
     if (state.warp > 10 && !canSetWarp(state.warp)) state.warp = 10;
   }
@@ -161,7 +161,7 @@ export function createMission({ crewCount = 3, supplyDuration = 320 * DAY, suppl
       if (state.warp > 10 && !canSetWarp(state.warp)) state.warp = 10;
     },
     stage: () => state.phase === 'ASCENT' && ascent.stage(), burn,
-    abort() { if (!['LANDED', 'FAILED'].includes(state.phase)) fail('Görev kullanıcı tarafından iptal edildi.'); },
+    abort() { if (!['LANDED', 'FAILED'].includes(state.phase)) fail("Mission aborted by user."); },
     setWarp(warp) { if (!canSetWarp(warp)) return false; state.warp = warp; return true; }
   };
 }

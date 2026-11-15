@@ -3,20 +3,20 @@ import * as T from 'three'
 import { createRoverState, commandRover, stepRover, roverWheelKinematics, ROVER_STATIONS, ROVER_OBSTACLES,
   ROVER_TIME_COMPRESSION, ROVER_BATTERY_KWH, ROVER_DOCK_CHARGE_W, ROVER_HOME } from '../../sim/rover.js'
 
-const MODES = { parked: 'Parkta', driving: 'Sürüyor', analyzing: 'Analiz yapıyor', sampling: 'Numune alıyor' }
-const number = (v, digits = 1) => v.toLocaleString('tr-TR', { maximumFractionDigits: digits, minimumFractionDigits: digits })
+const MODES = { parked: "Parked", driving: "Driving", analyzing: "Analyzing", sampling: "Sampling" }
+const number = (v, digits = 1) => v.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits })
 export const roverReadouts = s => [
-  ['Şarj istasyonu', s.docked ? `${number(s.chargingW??0,0)} W · bağlı` : 'Üs parkında bekliyor'],
-  ['Mod / hedef', `${MODES[s.mode]} · ${s.target?.name ?? 'Üs parkı'}`],
-  ['Otopilot / kampanya', `${s.autopilot ? 'Açık' : 'Duraklatıldı'} · etap ${s.campaignLeg} · ${s.campaignPhase === 'charging' ? 'MMRTG şarjı' : s.campaignPhase === 'returning' ? 'Üsse dönüyor' : 'Keşif'}`],
-  ['Rover saati', 'Rover zamanı ×50 hızlandırılmış'],
-  ['Üsten uzaklık', `${number(s.distanceFromBaseM)} m`],
-  ['Konum (X / Z)', `${number(s.x)} / ${number(s.z)} m`],
-  ['Hız / odometre', `${number(s.speedMps, 3)} m/sn · ${number(s.odometerM)} m`],
-  ['Batarya / MMRTG', `${number(s.batteryKWh, 3)} kWh · %${number(s.batteryKWh / ROVER_BATTERY_KWH * 100, 0)} / 110 W`],
-  ['Tüpler / numuneler', `${s.tubesRemaining} / 43 · ${s.samples.length} kaya · 5 tanık ayrıldı`],
-  ['İşlem kuyruğu', s.instrumentQueue.join(' → ') || (s.mode === 'sampling' ? 'Karot / mühürleme' : 'Otonom görev planı')],
-  ['Son ölçüm', s.measurements.at(-1)?.instrument ?? 'Henüz veri yok'],
+  ["Charging station", s.docked ? `${number(s.chargingW??0,0)} W · connected` : "Waiting at base parking"],
+  ["Mode / target", `${MODES[s.mode]} · ${s.target?.name ?? "Base parking"}`],
+  ["Autopilot / campaign", `${s.autopilot ? "On" : "Paused"} · leg ${s.campaignLeg} · ${s.campaignPhase === 'charging' ? "MMRTG charging" : s.campaignPhase === 'returning' ? "Returning to base" : "Exploration"}`],
+  ["Rover clock", "Rover time accelerated ×50"],
+  ["Distance from base", `${number(s.distanceFromBaseM)} m`],
+  ["Position (X / Z)", `${number(s.x)} / ${number(s.z)} m`],
+  ["Speed / odometer", `${number(s.speedMps, 3)} m/s · ${number(s.odometerM)} m`],
+  ["Battery / MMRTG", `${number(s.batteryKWh, 3)} kWh · %${number(s.batteryKWh / ROVER_BATTERY_KWH * 100, 0)} / 110 W`],
+  ["Tubes / samples", `${s.tubesRemaining} / 43 · ${s.samples.length} rock samples · 5 witness tubes reserved`],
+  ["Operation queue", s.instrumentQueue.join(' → ') || (s.mode === 'sampling' ? "Coring / sealing" : "Autonomous mission plan")],
+  ["Latest measurement", s.measurements.at(-1)?.instrument ?? "No data yet"],
 ]
 
 function labelSprite() {
@@ -26,13 +26,13 @@ function labelSprite() {
   const sprite = new T.Sprite(material); sprite.scale.set(.32, .045, 1); sprite.renderOrder = 9; sprite.raycast = () => {}
   let previous = ''
   return { sprite, draw(s) {
-    const text = `${MODES[s.mode]} · ${number(s.distanceFromBaseM,0)} m · ${s.target?.name ?? 'Keşif'}`
+    const text = `${MODES[s.mode]} · ${number(s.distanceFromBaseM,0)} m · ${s.target?.name ?? "Exploration"}`
     if (previous === text) return
     previous = text
     const g = canvas.getContext('2d'); g.clearRect(0, 0, 768, 108)
     g.fillStyle = 'rgba(6,19,29,.87)'; g.fillRect(0, 0, 768, 108)
     g.fillStyle = '#e7b25c'; g.fillRect(0, 0, 5, 108)
-    g.font = '600 29px Barlow, Segoe UI, sans-serif'; g.fillText('PERSEVERANCE / OTOPİLOT · ZAMAN ×50', 24, 35)
+    g.font = '600 29px Barlow, Segoe UI, sans-serif'; g.fillText("PERSEVERANCE / AUTOPILOT · TIME ×50", 24, 35)
     g.fillStyle = '#f2ebe0'; g.font = '500 28px Barlow, Segoe UI, sans-serif'; g.fillText(text, 24, 79, 720)
     texture.needsUpdate = true
   }, dispose() { texture.dispose(); material.dispose(); sprite.removeFromParent() } }
@@ -119,7 +119,7 @@ export function createRover({ scene, reference, heightAt, focus, reserveEnergy=(
   dockBox(.48,1.2,.38,-1.7,.6,.8,metal);dockBox(.7,.08,.6,-1.7,.06,.8,metal);
   const dockLamp=new T.Mesh(new T.SphereGeometry(.055,10,6),new T.MeshStandardMaterial({color:0xe4ad50,emissive:0xe4ad50,emissiveIntensity:1}));dockLamp.position.set(-1.7,1.23,.8);station.add(dockLamp);
   const dockLead=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(-1.7,.9,.8),new T.Vector3(-1.4,.45,.65),new T.Vector3(-1.2,.55,.2)]),16,.035,6,false),metal);station.add(dockLead);
-  const chargingLine=document.createElement('canvas');chargingLine.width=256;chargingLine.height=96;const gc=chargingLine.getContext('2d');gc.fillStyle='#10232a';gc.fillRect(0,0,256,96);gc.fillStyle='#b5edd5';gc.font='bold 23px sans-serif';gc.fillText('ROVER / SARJ',18,37);gc.font='19px sans-serif';gc.fillText('250 W - E: TABLET',18,72);const dockTexture=new T.CanvasTexture(chargingLine);dockTexture.colorSpace=T.SRGBColorSpace;const plate=new T.Mesh(new T.PlaneGeometry(.55,.21),new T.MeshBasicMaterial({map:dockTexture}));plate.position.set(-1.7,.99,1.0);station.add(plate);
+  const chargingLine=document.createElement('canvas');chargingLine.width=256;chargingLine.height=96;const gc=chargingLine.getContext('2d');gc.fillStyle='#10232a';gc.fillRect(0,0,256,96);gc.fillStyle='#b5edd5';gc.font='bold 23px sans-serif';gc.fillText("ROVER / CHARGING",18,37);gc.font='19px sans-serif';gc.fillText('250 W - E: TABLET',18,72);const dockTexture=new T.CanvasTexture(chargingLine);dockTexture.colorSpace=T.SRGBColorSpace;const plate=new T.Mesh(new T.PlaneGeometry(.55,.21),new T.MeshBasicMaterial({map:dockTexture}));plate.position.set(-1.7,.99,1.0);station.add(plate);
   const state = createRoverState(2026,{obstacles}), label = labelSprite(), tracks = trail(scene, heightAt), wheels=[]
   scene.add(label.sprite)
   const style = document.createElement('style')
@@ -158,24 +158,24 @@ export function createRover({ scene, reference, heightAt, focus, reserveEnergy=(
     const key = `${state.message}|${state.mode}|${state.measurements.length}|${state.samples.length}`
     if (controlsBox) {
       const toggle=controlsBox.querySelector('[data-rover-action="autopilot"]')
-      toggle.textContent=state.autopilot?'Otopilotu duraklat':'Otopilotu sürdür'
+      toggle.textContent=state.autopilot?"Pause autopilot":"Resume autopilot"
       toggle.setAttribute('aria-pressed',String(state.autopilot))
     }
-    if(controlsBox){const recall=controlsBox.querySelector('[data-rover-action="return"]');if(recall)recall.textContent=state.returnPlan?'Üsse çağırmayı iptal et':'Üsse çağır';}
+    if(controlsBox){const recall=controlsBox.querySelector('[data-rover-action="return"]');if(recall)recall.textContent=state.returnPlan?"Cancel recall to base":"Recall to base";}
     if (key === lastResult) return
     lastResult = key; box.replaceChildren()
     box.append(Object.assign(document.createElement('p'), { role: 'status', textContent: state.message }))
-    box.append(Object.assign(document.createElement('h3'), { textContent: `BİLİM ARŞİVİ · ${state.measurements.length} ÖLÇÜM / ${state.samples.length} NUMUNE` }))
+    box.append(Object.assign(document.createElement('h3'), { textContent: `SCIENCE ARCHIVE · ${state.measurements.length} MEASUREMENTS / ${state.samples.length} SAMPLES` }))
     const list = document.createElement('ol'); list.reversed = true
     for (let i = state.measurements.length - 1; i >= 0; i--) {
       const m = state.measurements[i], li = document.createElement('li'), title = document.createElement('b')
       title.textContent = `${m.instrument} · ${m.stationName}`; li.append(title, document.createElement('br'))
       let summary = m.summary
-      if (m.instrument === 'MEDA') summary = `${number(m.values.pressurePa / 100, 2)} hPa · ${number(m.values.airTemperatureK - 273.15)} °C · ${number(m.values.windMps)} m/sn · τ ${number(m.values.dustOpacity, 2)}`
+      if (m.instrument === 'MEDA') summary = `${number(m.values.pressurePa / 100, 2)} hPa · ${number(m.values.airTemperatureK - 273.15)} °C · ${number(m.values.windMps)} m/s · τ ${number(m.values.dustOpacity, 2)}`
       li.append(document.createTextNode(summary)); list.append(li)
     }
     box.append(list)
-    if (state.samples.length) box.append(Object.assign(document.createElement('p'), { textContent: 'Mühürlü tüpler: ' + state.samples.map(s => `#${String(s.tube).padStart(2, '0')} ${s.stationName}`).join(' · ') }))
+    if (state.samples.length) box.append(Object.assign(document.createElement('p'), { textContent: "Sealed tubes: " + state.samples.map(s => `#${String(s.tube).padStart(2, '0')} ${s.stationName}`).join(' · ') }))
   }
   const api = {
     get telemetry() { return state },
@@ -202,9 +202,9 @@ export function createRover({ scene, reference, heightAt, focus, reserveEnergy=(
     },
     renderControls(box, on) {
       controlsBox = box; box.classList.add('rover-controls'); lastResult = ''
-      const note=Object.assign(document.createElement('p'),{textContent:'Rover zamanı ×50 hızlandırılmış. AutoNav rotayı izler; bilim planı cihazları ve numuneyi otomatik yönetir.'})
+      const note=Object.assign(document.createElement('p'),{textContent:"Rover time is accelerated ×50. AutoNav follows the route; the science plan manages instruments and sampling automatically."})
       const actions = document.createElement('div'); actions.className = 'rover-actions'
-      for (const [action, text] of [['autopilot', state.autopilot?'Otopilotu duraklat':'Otopilotu sürdür'], ['return', 'Üsse çağır']]) {
+      for (const [action, text] of [['autopilot', state.autopilot?"Pause autopilot":"Resume autopilot"], ['return', "Recall to base"]]) {
         const b = Object.assign(document.createElement('button'), { type: 'button', textContent: text }); b.dataset.roverAction = action
         on(b, 'click', () => {
           command(action==='return'&&state.returnPlan?'cancel-return':action)

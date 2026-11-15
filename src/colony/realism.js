@@ -4,20 +4,20 @@ import { SOL } from '../sim/landingPayload.js';
 
 export const REALISM_SOURCES = Object.freeze({
   bvad: { label: 'NASA BVAD · 2022 Rev. 2', url: 'https://ntrs.nasa.gov/citations/20210024855' },
-  consumables: { label: 'NASA Ames · Günlük yaşam desteği, Tablo 1', url: 'https://ntrs.nasa.gov/citations/20160005782' },
+  consumables: { label: "NASA Ames · Daily life support, Table 1", url: 'https://ntrs.nasa.gov/citations/20160005782' },
   mars24: {label:'NASA GISS · Mars24',url:'https://www.giss.nasa.gov/tools/mars24/help/algorithm.html'},
-  jezero: {label:'NASA GISS · Perseverance iniş noktası',url:'https://www.giss.nasa.gov/tools/mars24/help/landers.html'},
-  rover: {label:'NASA/JPL · Perseverance güç sistemi',url:'https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/spacecraft/power/'},
+  jezero: {label:"NASA GISS · Perseverance landing site",url:'https://www.giss.nasa.gov/tools/mars24/help/landers.html'},
+  rover: {label:"NASA/JPL · Perseverance power system",url:'https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/spacecraft/power/'},
   sls: {label:'NASA · Space Launch System',url:'https://www.nasa.gov/reference/space-launch-system/'},
   astronaut: {label:'NASA 3D Resources · Astronaut',url:'https://science.nasa.gov/3d-resources/astronaut/'},
   dra: {label:'NASA · Mars Design Reference Architecture 5.0',url:'https://ntrs.nasa.gov/citations/20120012928'},
-  moxie: { label: 'NASA/JPL · MOXIE, 6 Eylül 2023', url: 'https://www.nasa.gov/solar-system/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/' },
-  solar: { label: 'NASA · Mars Fact Sheet / güneş ışınımı', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html?level=1' },
-  earth: { label: 'NASA · Dünya bilgi sayfası', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html' },
-  storm: { label: 'NASA · Opportunity ve 2018 fırtınası', url: 'https://science.nasa.gov/mission/mer-opportunity/' },
-  mars: { label: 'NASA · Mars bilgi sayfası', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html' },
-  gravity: { label: 'NASA/JPL · Gezegen fiziksel parametreleri', url: 'https://ssd.jpl.nasa.gov/planets/phys_par.html' },
-  rems: { label: 'NASA/JPL · Curiosity REMS, Gale mevsimleri', url: 'https://www.jpl.nasa.gov/news/second-cycle-of-martian-seasons-completing-for-curiosity-rover/' },
+  moxie: { label: "NASA/JPL · MOXIE, 6 September 2023", url: 'https://www.nasa.gov/solar-system/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/' },
+  solar: { label: "NASA · Mars Fact Sheet / solar irradiance", url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html?level=1' },
+  earth: { label: "NASA · Earth fact sheet", url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html' },
+  storm: { label: "NASA · Opportunity and the 2018 storm", url: 'https://science.nasa.gov/mission/mer-opportunity/' },
+  mars: { label: "NASA · Mars fact sheet", url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html' },
+  gravity: { label: "NASA/JPL · Planetary physical parameters", url: 'https://ssd.jpl.nasa.gov/planets/phys_par.html' },
+  rems: { label: "NASA/JPL · Curiosity REMS, Gale seasons", url: 'https://www.jpl.nasa.gov/news/second-cycle-of-martian-seasons-completing-for-curiosity-rover/' },
 });
 
 export const REALISM = Object.freeze({
@@ -45,33 +45,33 @@ export const REALISM = Object.freeze({
   galeObservedAirCelsius: Object.freeze({ min: -100, max: 15.9 }),
 });
 
-const number = (value, digits = 2) => value.toLocaleString('tr-TR', { maximumFractionDigits: digits });
+const number = (value, digits = 2) => value.toLocaleString("en-US", { maximumFractionDigits: digits });
 
 export const REALISM_NOTES = Object.freeze([
   {
-    id: 'supplies', title: 'Erzak: kişi-sol ve kilogram', sources: ['consumables', 'bvad', 'mars'],
+    id: 'supplies', title: "Supplies: person-sols and kilograms", sources: ['consumables', 'bvad', 'mars'],
     // GAME ASSUMPTION: one colony supply unit is one person's requirement for one sol.
-    text: `1 oyun erzak birimi = 1 kişinin 1 sollük ihtiyacı. NASA Ames Tablo 1 günlük referansı: kişi başına ${number(REALISM.crewKgPerEarthDay.oxygen)} kg O₂, ${number(REALISM.crewKgPerEarthDay.water)} kg içme/yemek hazırlama suyu ve ${number(REALISM.crewKgPerEarthDay.food)} kg kuru gıda. Bu oranlar Dünya günü içindir; uçuş–koloni devrinde daha uzun Mars solu hesaba katılır. Yedek parçalar adet, üretim ve geri dönüşüm kapasiteleri oyun değeridir.`,
+    text: `1 game supply unit = 1 person’s needs for 1 sol. NASA Ames Table 1 daily reference per person: ${number(REALISM.crewKgPerEarthDay.oxygen)} kg O₂, ${number(REALISM.crewKgPerEarthDay.water)} kg of drinking/food preparation water and ${number(REALISM.crewKgPerEarthDay.food)} kg of dry food. These rates apply to Earth days; the longer Mars sol is accounted for during the flight–colony handoff. Spare parts are individual units; production and recycling capacities are game values.`,
   },
   {
-    id: 'moxie', title: 'Oksijen: MOXIE ölçeği', sources: ['moxie'],
-    text: `Perseverance üzerindeki MOXIE, en yüksek veriminde yaklaşık ${number(REALISM.moxiePeakOxygenKgPerHour * 1000)} g O₂/saat üretti. NASA 16 denemede toplam 122 g bildirdi. Kolonide 3 grup × 3 MOXIE ve 15 kg toplam depo modellendi. Cihaz başına 6 g/sa tasarım hedefinden hareketle tam güçte 54 g/sa hesaplanır. Bu yerleşim ve çalışma düzeni oyun varsayımıdır.`,
+    id: 'moxie', title: "Oxygen: MOXIE scale", sources: ['moxie'],
+    text: `MOXIE aboard Perseverance reached a peak production rate of approximately ${number(REALISM.moxiePeakOxygenKgPerHour * 1000)} g O₂/h. NASA reported a total of 122 g across 16 runs. The colony models 3 banks of 9 MOXIE modules and 15 kg of total storage. At the 6 g/h design reference per unit, full-power output is 162 g/h at 8.1 kW. This layout and operating schedule are game assumptions.`,
   },
   {
-    id: 'solar', title: 'Güneş ve toz fırtınaları', sources: ['solar', 'earth', 'storm'],
-    text: `Atmosferin üstünde ortalama güneş ışınımı Mars’ta yaklaşık ${number(REALISM.marsSolarIrradiance)} W/m², Dünya’da ${number(REALISM.earthSolarIrradiance)} W/m²’dir. Yüzeye ulaşan ışık ve panelin elektrik üretimi daha düşüktür; açı, mevsim, toz ve verime bağlıdır. Opportunity’nin 2018 küresel toz fırtınasında güneş enerjisi ciddi ölçüde azaldı. Oyunun enerji/batarya birimleri ve fırtına katsayıları sadeleştirilmiştir.`,
+    id: 'solar', title: "Sunlight and dust storms", sources: ['solar', 'earth', 'storm'],
+    text: `Mean solar irradiance above the atmosphere is approximately ${number(REALISM.marsSolarIrradiance)} W/m² on Mars and ${number(REALISM.earthSolarIrradiance)} W/m² on Earth. Surface light and electrical output are lower and depend on angle, season, dust and efficiency. Solar power fell sharply during Opportunity’s 2018 global dust storm. Game energy/battery units and storm factors are simplified.`,
   },
   {
-    id: 'environment', title: 'Mars’ta bir sol', sources: ['mars', 'gravity', 'mars24', 'jezero'],
-    text: `Yüzey yerçekimi yaklaşık ${number(REALISM.marsGravity)} m/s²; temsilî yüzey basıncı yaklaşık ${number(REALISM.marsSurfacePressure / 1000)} kPa. Bir sol yaklaşık 24 saat 39 dakika 35 saniyedir. Güneş açısı NASA Mars24 ile, 18,44° K / 77,45° D Perseverance iniş noktası için hesaplanır. Basınç konuma ve mevsime göre değişir; bu değerler Jezero için canlı hava verisi değildir.`,
+    id: 'environment', title: "A sol on Mars", sources: ['mars', 'gravity', 'mars24', 'jezero'],
+    text: `Surface gravity is approximately ${number(REALISM.marsGravity)} m/s²; representative surface pressure is approximately ${number(REALISM.marsSurfacePressure / 1000)} kPa. One sol is about 24 hours 39 minutes 35 seconds. Solar angles use NASA Mars24 at Perseverance’s landing site, 18.44° N / 77.45° E. Pressure varies with location and season; these values are not live Jezero weather data.`,
   },
   {
-    id:'hardware', title:'Uçuş ve yüzey donanımı', sources:['sls','dra','rover','astronaut'],
-    text:'SLS Block 1 dört RS-25 ve iki katı yakıtlı hızlandırıcı kullanır. Perseverance’ın MMRTG başlangıç gücü yaklaşık 110 W’tır. Rover ve astronot varlıkları NASA’nın yayımladığı 3B modellerden gelir. Transfer aracı ve insanlı Mars iniş aracı konsepttir. Rover iskelesi, su sondajı, sera, 420 panel, 180 kWh depo ve toz takvimi oyuna aittir.',
+    id:'hardware', title:"Flight and surface hardware", sources:['sls','dra','rover','astronaut'],
+    text:"SLS Block 1 uses four RS-25 engines and two solid rocket boosters. Perseverance’s MMRTG initially provided about 110 W. Rover and astronaut assets come from NASA’s published 3D models. The transfer vehicle and crewed Mars lander are concepts. The rover dock, water drill, greenhouse, 420 panels, 180 kWh storage and dust schedule are game designs.",
   },
   {
-    id: 'temperature', title: 'Gale’de sıcaklık: Curiosity / REMS', sources: ['rems'],
+    id: 'temperature', title: "Temperature at Gale: Curiosity / REMS", sources: ['rems'],
     // https://www.jpl.nasa.gov/news/second-cycle-of-martian-seasons-completing-for-curiosity-rover/
-    text: `Curiosity’nin ilk iki Mars yılında REMS, Gale’de ${number(REALISM.galeObservedAirCelsius.min)} °C ile +${number(REALISM.galeObservedAirCelsius.max)} °C arasında hava sıcaklığı ölçtü. Gündüz donma noktasının üzerine çıkan sıcaklık gece −90 °C’nin altına düşebilir. Bu gözlenen aralık tüm Mars’ın sınırları veya Jezero hava tahmini değildir. Hava ve zemin sıcaklıkları farklıdır; koloni sağlık ve sera kuralları ayrıntılı bir termal model içermez.`,
+    text: `During Curiosity’s first two Mars years, REMS measured air temperatures at Gale from ${number(REALISM.galeObservedAirCelsius.min)} °C to +${number(REALISM.galeObservedAirCelsius.max)} °C. Daytime temperatures can rise above freezing and fall below −90 °C at night. This observed range is not a planet-wide limit or Jezero forecast. Air and ground temperatures differ; colony health and greenhouse rules do not include a detailed thermal model.`,
   },
 ]);

@@ -8,12 +8,12 @@ import * as T from 'three'
 // GAME ASSUMPTIONs for pacing; the chores themselves mirror real surface-ops concerns:
 // dust on solar arrays (NASA Mars surface power), CO₂ scrubber filters, ice-drill wear, crop care.
 export const CREW_SITES = {
-  greenhouse: { x: 26.8, z: -.4, face: Math.PI, text: 'Serada bitki bakımı · besin çözeltisi ölçümü' },
-  air: { x: 19, z: 9.6, face: Math.PI, text: 'Hava tesisi · CO₂ filtre kontrolü' },
-  water: { x: 64, z: -21.4, face: Math.PI, text: 'Su tesisi · buz matkabı bakımı' },
-  solar: { x: -40.5, z: 31, face: -Math.PI / 2, text: 'Güneş panelleri · toz temizliği' },
-  pad: { x: 2, z: 20, face: 0, text: 'Kurulum alanı · zemin ve kablo ölçümü' },
-  rover: { x: 7.6, z: 17, face: -2.2, text: 'Rover · numune kutusu kontrolü' },
+  greenhouse: { x: 26.8, z: -.4, face: Math.PI, text: "Greenhouse plant care · nutrient solution measurement" },
+  air: { x: 19, z: 9.6, face: Math.PI, text: "Air plant · CO₂ filter inspection" },
+  water: { x: 64, z: -21.4, face: Math.PI, text: "Water plant · ice drill maintenance" },
+  solar: { x: -40.5, z: 31, face: -Math.PI / 2, text: "Solar panels · dust cleaning" },
+  pad: { x: 2, z: 20, face: 0, text: "Construction area · ground and cable survey" },
+  rover: { x: 7.6, z: 17, face: -2.2, text: "Rover · sample container inspection" },
 }
 const ROLE_SITES = {
   production: ['greenhouse', 'air', 'water'],
@@ -142,12 +142,12 @@ export function createCrewAgents({ crewModels, groundY }) {
         // İhan's character loader clears the actor's children when the NASA suit GLB arrives.
         if (label.sprite.parent !== actor) {actor.add(label.sprite);agent.parts=null}if(!agent.parts||!agent.parts.armL.length)agent.parts=limbs(actor)
         actor.rotation.order = 'YXZ'
-        const name = 'Astronot ' + (index + 1)
+        const name = "Astronaut " + (index + 1)
         if (person.health <= 0) { label.sprite.visible = false; return }
         if (person.id === playerId) {
           // The player's body follows the camera in FPS so that switching astronaut keeps continuity.
           if (fpsActive) { actor.position.set(camera.position.x, groundY(camera.position.x, camera.position.z), camera.position.z); agent.mode = 'idle'; agent.path = [] }
-          label.set(name + ' · Sen', 'Kontrol sende')
+          label.set(name + " · You", "You are in control")
           label.sprite.visible = !fpsActive
           return
         }
@@ -174,12 +174,12 @@ export function createCrewAgents({ crewModels, groundY }) {
           actor.rotation.x = 0
           // Low-g gait: slow, slightly floaty steps (Mars g = 3.71 m/s²).
           const s=Math.sin(agent.phase*Math.PI*2*STRIDE_HZ);swing(agent.parts,s*.28,-s*.28,s*.42,-s*.42);actor.position.y=groundY(actor.position.x,actor.position.z)+Math.abs(s)*.045
-          label.set(name + ' · Yolda', site.text.split(' · ')[0] + ' için yürüyor')
+          label.set(name + " · En route", site.text.split(' · ')[0] + " walking to")
         } else if (agent.mode === 'working') {
           // Slow lean in and out, as if inspecting/handling hardware at chest height.
           actor.position.y = groundY(actor.position.x, actor.position.z)
           actor.rotation.x=.06+Math.sin(agent.phase*1.3)*.04;const w=Math.sin(agent.phase*2.1);swing(agent.parts,-.85+w*.18,-.85-w*.18,0,0)
-          label.set(name + (person.role ? ' · ' + { production: 'Üretim', maintenance: 'Bakım', construction: 'İnşaat' }[person.role] : ''), site.text)
+          label.set(name + (person.role ? ' · ' + { production: "Production", maintenance: "Maintenance", construction: "Construction" }[person.role] : ''), site.text)
         }
       })
     },

@@ -38,8 +38,8 @@ const setSurfaceOption=(action,value,on,off)=>{
 function onColonyState(event) {
   if (!event.detail || typeof event.detail !== 'object') return;
   wristDetail = { ...wristDetail, ...event.detail, state: event.detail.state ?? wristDetail.state };
-  setSurfaceOption('audio',wristDetail.audio,'Sesi kapat','Sesi aç');
-  setSurfaceOption('lamp',wristDetail.headlamp,'Kafa lambasını kapat','Kafa lambasını aç');
+  setSurfaceOption('audio',wristDetail.audio,"Mute","Unmute");
+  setSurfaceOption('lamp',wristDetail.headlamp,"Turn headlamp off","Turn headlamp on");
   const task=event.detail.activeTask;if(typeof task==='string'&&task&&task!==lastWristTask){if(lastWristTask!==null)wrist.notify(task);lastWristTask=task;}
   // The terminal samples at 4 Hz while raised, even if the scene publishes every frame.
 }
@@ -55,14 +55,14 @@ window.addEventListener('pagehide', onPageHide);
 if (import.meta.hot) import.meta.hot.dispose(disposeWrist);
 // Dynamic import ensures the event listener above exists before scene initialization.
 void import('./scene/mars-demo.mjs');
-const number = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 });
+const number = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const target = document.getElementById('landing-source');
 if (target) {
   const s = landing.supplies;
   const source = document.createElement('b');
-  source.textContent = landing.source === 'flight' ? 'Uçuştan gelen iniş verisi' : 'Örnek iniş verisi';
-  target.replaceChildren(source, document.createTextNode(' · Jezero Krateri'));
-  target.title = `İniş stoku · O₂ ${number.format(s.oxygen)} · Su ${number.format(s.water)} · Yiyecek ${number.format(s.food)} ${landing.source === 'flight' ? 'ekip-solü' : 'kişi-sol'} · Yedek parça ${number.format(s.spareParts)} adet`;
+  source.textContent = landing.source === 'flight' ? "Landing data from flight" : "Example landing data";
+  target.replaceChildren(source, document.createTextNode(" · Jezero Crater"));
+  target.title = `Landing supplies · O₂ ${number.format(s.oxygen)} · Water ${number.format(s.water)} · Food ${number.format(s.food)} ${landing.source === 'flight' ? "crew-sols" : "person-sols"} · Spare parts ${number.format(s.spareParts)} units`;
 }
 
 // UI-only drawer controller. Scene controls keep their original IDs and handlers.
@@ -84,7 +84,7 @@ function tabletPage(node){
   if(activeTabletPanel&&activeTabletPanel!==node)activeTabletPanel.hidden=true;
   panelSlot.append(node);node.hidden=false;panelSlot.hidden=false;activeTabletPanel=node;
   document.querySelector('.ares-screen').classList.add('has-panel');content.hidden=true;tabletTabs.hidden=true;
-  watchActions.hidden=true;managementToggle.textContent='UYGULAMALAR';
+  watchActions.hidden=true;managementToggle.textContent="APPS";
   document.body.classList.add('tablet-active');document.exitPointerLock?.();
   if(!wrist.raised){
     wrist.setRaised(true);
@@ -109,20 +109,20 @@ for (const toggle of toggles) listen(toggle, 'click', () => {
   showDrawer(activeDrawer === toggle.dataset.drawer ? null : toggle.dataset.drawer);
 });
 // Management remains accessible from the manually raised wrist, without a screen-edge sidebar.
-const watchActions=document.createElement('nav');watchActions.className='ares-colony-actions';watchActions.hidden=true;watchActions.setAttribute('aria-label','Koloni yönetimi');
-for(const [id,title,subtitle] of [['rover','Rover kontrol','Görev · üsse çağır · şarj'],['water','Su tesisi','Buz çıkarma · geri kazanım'],['air','Hava tesisi','O₂ üretimi · CO₂ giderimi'],['solar','Güneş & enerji','Güneş tarlası konsolu'],['greenhouse','Sera','Büyüme ışığı · sulama'],['habitat','Yaşam alanı','Mürettebat · yaşam desteği']]){
+const watchActions=document.createElement('nav');watchActions.className='ares-colony-actions';watchActions.hidden=true;watchActions.setAttribute('aria-label',"Colony management");
+for(const [id,title,subtitle] of [['rover',"Rover control","Mission · recall · charge"],['water',"Water plant","Ice extraction · recovery"],['air',"Air plant","O₂ production · CO₂ removal"],['solar',"Solar & energy","Solar farm console"],['greenhouse',"Greenhouse","Grow lights · irrigation"],['habitat',"Habitat","Crew · life support"]]){
   const button=document.createElement('button');button.type='button';const label=document.createElement('b');label.textContent=title;const sub=document.createElement('small');sub.textContent=subtitle;button.append(label,sub);listen(button,'click',()=>window.dispatchEvent(new CustomEvent('colony:open-system',{detail:{id}})));watchActions.append(button);
 }
-const eclssApp=document.createElement('button');eclssApp.type='button';eclssApp.textContent='ECLSS · yaşam destek dengesi';listen(eclssApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer('eclss-drawer');});watchActions.append(eclssApp);
+const eclssApp=document.createElement('button');eclssApp.type='button';eclssApp.textContent="ECLSS · life support balance";listen(eclssApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer('eclss-drawer');});watchActions.append(eclssApp);
 const powerTablet=mountPowerTablet(tabletPage);
-const powerApp=document.createElement('button');powerApp.type='button';powerApp.textContent='Elektrik ve enerji tüketimi';listen(powerApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);powerTablet.open();});watchActions.append(powerApp);
+const powerApp=document.createElement('button');powerApp.type='button';powerApp.textContent="Electricity and energy consumption";listen(powerApp,'click',()=>{window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);powerTablet.open();});watchActions.append(powerApp);
 listen(window,'pagehide',()=>powerTablet.dispose());
-const labApp=document.createElement('button');labApp.type='button';labApp.textContent='Laboratuvar · toprak analizi';listen(labApp,'click',()=>{showDrawer(null);tabletPage(labPanel);});watchActions.append(labApp);
+const labApp=document.createElement('button');labApp.type='button';labApp.textContent="Laboratory · soil analysis";listen(labApp,'click',()=>{showDrawer(null);tabletPage(labPanel);});watchActions.append(labApp);
 const labPanel=document.createElement('section');labPanel.className='colony-drawer ops-lab';labPanel.hidden=true;document.body.append(labPanel);
 let lastLabPhase;
-listen(window,'colony:state',()=>{if(activeTabletPanel!==labPanel)return;const lab=wristDetail.lifeSupport?.lab;if(lastLabPhase===lab?.phase&&labPanel.childElementCount)return;lastLabPhase=lab?.phase;labPanel.replaceChildren();const title=document.createElement('h2');title.textContent='Toprak analiz laboratuvarı';const status=document.createElement('p');status.textContent=lab?.phase==='scanning'?'Numune taranıyor…':lab?.phase==='complete'?'Analiz tamamlandı':'REG-01 numunesi hazır';labPanel.append(title,status);if(lab?.result){const result=document.createElement('p');result.textContent=`Su buzu %${lab.result.waterIcePercent} · Demir oksit %${lab.result.ironOxidePercent} · Perklorat: tespit edildi. Arıtma ve besin takviyesi gerekli. Temsili oyun verisidir.`;labPanel.append(result);}const button=document.createElement('button');button.type='button';button.textContent=lab?.phase==='complete'?'Yeniden analiz et':'Analizi başlat';button.disabled=lab?.phase==='scanning';button.onclick=()=>window.dispatchEvent(new CustomEvent('colony:analyze-soil'));labPanel.append(button);});
+listen(window,'colony:state',()=>{if(activeTabletPanel!==labPanel)return;const lab=wristDetail.lifeSupport?.lab;if(lastLabPhase===lab?.phase&&labPanel.childElementCount)return;lastLabPhase=lab?.phase;labPanel.replaceChildren();const title=document.createElement('h2');title.textContent="Soil analysis laboratory";const status=document.createElement('p');status.textContent=lab?.phase==='scanning'?"Scanning sample…":lab?.phase==='complete'?"Analysis complete":"REG-01 sample ready";labPanel.append(title,status);if(lab?.result){const result=document.createElement('p');result.textContent=`Water ice %${lab.result.waterIcePercent} · Iron oxide %${lab.result.ironOxidePercent} · Perchlorate detected. Treatment and nutrient supplementation required. Illustrative game data.`;labPanel.append(result);}const button=document.createElement('button');button.type='button';button.textContent=lab?.phase==='complete'?"Analyze again":"Start analysis";button.disabled=lab?.phase==='scanning';button.onclick=()=>window.dispatchEvent(new CustomEvent('colony:analyze-soil'));labPanel.append(button);});
 const fieldTablet=mountFieldTablet({getDetail:()=>wristDetail,onOpen:tabletPage});
-for(const [page,title] of [['radiation','Radyasyon'],['vision','Görüntü analizi'],['ai','Yerel yapay zekâ']]){
+for(const [page,title] of [['radiation',"Radiation"],['vision',"Image analysis"],['ai',"Local AI"]]){
   const button=document.createElement('button');
   button.type='button';
   button.textContent=title;
@@ -137,16 +137,16 @@ listen(window,'pagehide',event=>{if(!event.persisted)fieldTablet.dispose();});
 if(import.meta.hot)import.meta.hot.dispose(()=>fieldTablet.dispose());
 const sourcesApp=document.createElement('button');
 sourcesApp.type='button';
-sourcesApp.textContent='NASA verileri ve kaynaklar';
+sourcesApp.textContent="NASA data and sources";
 listen(sourcesApp,'click',()=>{
   window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));
   showDrawer('realism-drawer');
 });
 watchActions.append(sourcesApp);
 document.querySelector('.ares-screen').append(watchActions);
-const managementToggle=document.createElement('button');managementToggle.type='button';managementToggle.className='ares-management-toggle';managementToggle.textContent='UYGULAMALAR';document.querySelector('.ares-footer').append(managementToggle);listen(managementToggle,'click',()=>{if(activeTabletPanel){window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);watchActions.hidden=false;content.hidden=true;managementToggle.textContent='DURUMA DÖN';return;}watchActions.hidden=!watchActions.hidden;content.hidden=!watchActions.hidden;managementToggle.textContent=watchActions.hidden?'UYGULAMALAR':'DURUMA DÖN';});
+const managementToggle=document.createElement('button');managementToggle.type='button';managementToggle.className='ares-management-toggle';managementToggle.textContent="APPS";document.querySelector('.ares-footer').append(managementToggle);listen(managementToggle,'click',()=>{if(activeTabletPanel){window.dispatchEvent(new CustomEvent('colony:tablet-dismiss'));showDrawer(null);watchActions.hidden=false;content.hidden=true;managementToggle.textContent="BACK TO STATUS";return;}watchActions.hidden=!watchActions.hidden;content.hidden=!watchActions.hidden;managementToggle.textContent=watchActions.hidden?"APPS":"BACK TO STATUS";});
 listen(window,'colony:tablet-panel',e=>{if(!e.detail?.panel)return;showDrawer(null);tabletPage(e.detail.panel);});
-listen(window,'colony:tablet-panel-closed',()=>{showDrawer(null);watchActions.hidden=false;content.hidden=true;managementToggle.textContent='DURUMA DÖN';});
+listen(window,'colony:tablet-panel-closed',()=>{showDrawer(null);watchActions.hidden=false;content.hidden=true;managementToggle.textContent="BACK TO STATUS";});
 for (const button of document.querySelectorAll('[data-close-drawer]')) listen(button, 'click', () => closeDrawer());
 
 const surfaceAction=action=>window.dispatchEvent(new CustomEvent('colony:surface-settings',{detail:action}));

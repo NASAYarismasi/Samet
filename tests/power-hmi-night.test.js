@@ -20,13 +20,13 @@ it('follows the scene sun even if the selected projection season would still be 
   expect(daylight).toBe(false);
   expect(production).toBe(0);
   expect(groups.every(group=>group.charge===0)).toBe(true);
-  expect(groups.map(group=>groupStatus({...group,daylight}))).toContain('Batarya güç veriyor');
-  expect(groups.map(group=>groupStatus({...group,daylight}))).toContain('Gece · Güneş üretimi yok');
+  expect(groups.map(group=>groupStatus({...group,daylight}))).toContain("Battery supplying power");
+  expect(groups.map(group=>groupStatus({...group,daylight}))).toContain("Night · No solar generation");
 });
 
 it('keeps low twilight readings consistent with the displayed kW and shows daylight charging',()=>{
-  expect(groupStatus({daylight:true,draw:0,charge:0,pv:.004})).toBe('Güneş üretimi yok');
-  expect(groupStatus({daylight:true,draw:0,charge:.5,pv:1})).toBe('Batarya şarj oluyor');
+  expect(groupStatus({daylight:true,draw:0,charge:0,pv:.004})).toBe("No solar generation");
+  expect(groupStatus({daylight:true,draw:0,charge:.5,pv:1})).toBe("Battery charging");
 });
 
 it('keeps the live PV output independent of the forecast season selector',()=>{

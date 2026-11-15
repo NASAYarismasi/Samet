@@ -1,16 +1,16 @@
 import { CREW_RATES } from '../data/sls.js';
 
 export function missionCalendar(t) {
-  if(t.phase==='CRUISE')return `Seyir · ${Math.min(Math.ceil(t.transfer.duration/86400),Math.floor(t.cruiseProgress*t.transfer.duration/86400)+1)}. gün / ${Math.ceil(t.transfer.duration/86400)}`;
-  return ({PRELAUNCH:'Kalkış hazırlığı',ASCENT:'Dünya’dan kalkış',PARKING_ORBIT:'Dünya park yörüngesi',TMI_BURN:'Mars transfer ateşlemesi',MOI_BURN:'Mars yakalama ateşlemesi',MARS_ORBIT:'Mars park yörüngesi',DEORBIT:'Mars’a yaklaşma',EDL:'Atmosfere giriş ve iniş',LANDED:'Mars yüzeyi',FAILED:'Görev değerlendirmesi'})[t.phase]??'Görev takibi';
+  if(t.phase==='CRUISE')return `Cruise · Day ${Math.min(Math.ceil(t.transfer.duration/86400),Math.floor(t.cruiseProgress*t.transfer.duration/86400)+1)} / ${Math.ceil(t.transfer.duration/86400)}`;
+  return ({PRELAUNCH:"Launch preparation",ASCENT:"Launch from Earth",PARKING_ORBIT:"Earth parking orbit",TMI_BURN:"Mars transfer burn",MOI_BURN:"Mars capture burn",MARS_ORBIT:"Mars parking orbit",DEORBIT:"Approaching Mars",EDL:"Atmospheric entry and landing",LANDED:"Mars surface",FAILED:"Mission assessment"})[t.phase]??"Mission tracking";
 }
 
 export function missionElapsed(seconds) {
   const value=Math.max(0,Math.floor(seconds)),days=Math.floor(value/86400),hours=Math.floor(value/3600)%24,minutes=Math.floor(value/60)%60;
-  return days?`T+ ${days} g ${hours} sa ${minutes} dk`:`T+ ${hours} sa ${minutes} dk ${value%60} sn`;
+  return days?`T+ ${days} d ${hours} h ${minutes} min`:`T+ ${hours} h ${minutes} min ${value%60} s`;
 }
 
-export const EVENT_CAPTIONS=Object.freeze({LIFTOFF:'Kalkış · Mars yolculuğu başladı',MAX_Q:'Max-Q · En yüksek aerodinamik yük',SRB_SEPARATION:'Katı iticiler ayrıldı',LAS_JETTISON:'Kurtarma kulesi ayrıldı',MECO:'Ana motor kesildi · Kademe ayrılması',ICPS_IGNITION:'Üst kademe ateşlendi',ORBIT_INSERTION:'Dünya park yörüngesine ulaşıldı',TMI_BURN:'Mars transfer ateşlemesi başladı',CRUISE:'Dünya’dan ayrılış · Gezegenler arası seyir',MOI_BURN:'Mars yakalama ateşlemesi başladı',MARS_ORBIT:'Mars park yörüngesine ulaşıldı',DEORBIT:'Yörüngeden çıkış · İniş koridoruna yaklaşma',EDL:'Mars atmosferine giriş',HEATSHIELD_JETTISON:'Isı kalkanı ayrıldı · İniş motorları ateşlendi',LEGS_DEPLOYED:'İniş bacakları açılıyor',TOUCHDOWN:'Temas · Mars’a hoş geldiniz'});
+export const EVENT_CAPTIONS=Object.freeze({LIFTOFF:"Liftoff · Journey to Mars begins",MAX_Q:"Max Q · Peak aerodynamic load",SRB_SEPARATION:"Solid boosters separated",LAS_JETTISON:"Escape tower jettisoned",MECO:"Main engine cutoff · Stage separation",ICPS_IGNITION:"Upper stage ignited",ORBIT_INSERTION:"Earth parking orbit achieved",TMI_BURN:"Mars transfer burn started",CRUISE:"Earth departure · Interplanetary cruise",MOI_BURN:"Mars capture burn started",MARS_ORBIT:"Mars parking orbit achieved",DEORBIT:"Deorbit · Approaching entry corridor",EDL:"Mars atmospheric entry",HEATSHIELD_JETTISON:"Heat shield jettisoned · Descent engines ignited",LEGS_DEPLOYED:"Deploying landing gear",TOUCHDOWN:"Touchdown · Welcome to Mars"});
 
 /** UI projections only: all quantities originate in the mission snapshot. */
 export function vehicleConfiguration(t) {
@@ -21,9 +21,9 @@ export function vehicleConfiguration(t) {
 }
 
 export function apsisReadout(value, eccentricity, kind) {
-  if (kind==='apo' && (eccentricity>=1 || value===Infinity)) return {value:'—',unit:'açık yörünge'};
-  if (Number.isFinite(value) && value<0) return {value:'—',unit:'yörünge altı'};
-  return {value:Number.isFinite(value)?(value/1000).toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}):'—',unit:Number.isFinite(value)?'km':''};
+  if (kind==='apo' && (eccentricity>=1 || value===Infinity)) return {value:'—',unit:"open trajectory"};
+  if (Number.isFinite(value) && value<0) return {value:'—',unit:"suborbital"};
+  return {value:Number.isFinite(value)?(value/1000).toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1}):'—',unit:Number.isFinite(value)?'km':''};
 }
 
 export function resourceDays(t, resource) {
@@ -32,11 +32,11 @@ export function resourceDays(t, resource) {
 }
 
 export function nextEvent(t) {
-  if (t.phase==='PRELAUNCH') return t.countdown.running ? t.countdown.time < -6.5 ? 'Ana motor ateşlemesi' : 'Kalkış / T−0' : 'Geri sayımı başlat';
+  if (t.phase==='PRELAUNCH') return t.countdown.running ? t.countdown.time < -6.5 ? "Main engine ignition" : "Liftoff / T−0" : "Start countdown";
   if (t.phase==='ASCENT') {
-    if(t.stages.find(s=>s.id==='srb').attached) return 'Katı itici ayrılması';
-    if(t.lasAttached) return 'Kurtarma kulesinin atılması';
-    return t.stages.find(s=>s.id==='core').attached ? 'Ana kademe ayrılması' : 'Park yörüngesine giriş';
+    if(t.stages.find(s=>s.id==='srb').attached) return "Solid booster separation";
+    if(t.lasAttached) return "Escape tower jettison";
+    return t.stages.find(s=>s.id==='core').attached ? "Core stage separation" : "Parking orbit insertion";
   }
-  return {PARKING_ORBIT:'Mars transferi / B',TMI_BURN:'Seyir başlangıcı',CRUISE:'Mars yakalama ateşlemesi',MOI_BURN:'Mars park yörüngesi',MARS_ORBIT:'İnişi başlat / B',DEORBIT:'Atmosfere giriş',EDL:t.engineFiring?'Yüzeye temas':'İniş motoru ateşlemesi',LANDED:'Koloniye devir',FAILED:'Görev değerlendirmesi'}[t.phase]??'Görev takibi';
+  return {PARKING_ORBIT:"Mars transfer / B",TMI_BURN:"Start of cruise",CRUISE:"Mars capture burn",MOI_BURN:"Mars parking orbit",MARS_ORBIT:"Start descent / B",DEORBIT:"Atmospheric entry",EDL:t.engineFiring?"Touchdown":"Descent engine ignition",LANDED:"Handoff to colony",FAILED:"Mission assessment"}[t.phase]??"Mission tracking";
 }

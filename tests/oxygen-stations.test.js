@@ -1,11 +1,11 @@
 import {it,expect} from 'vitest';
 import {createGridState,stepMoxieGas,stepMicrogrid,MOXIE_TANK_KG} from '../src/colony/ihan/power/live-grid.mjs';
 import {stepGreenhouseGas} from '../src/colony/ihan/power/greenhouse-gas.mjs';
-it('models nine modules across three equal oxygen tanks',()=>{
+it('models twenty-seven modules across three equal oxygen tanks',()=>{
   const state=createGridState();
   const m=stepMoxieGas(state,true,1);
-  expect(m.oxygenKgHour).toBeCloseTo(.054);
-  expect(m.tanksKg).toEqual([.018,.018,.018]);
+  expect(m.oxygenKgHour).toBeCloseTo(.162);
+  expect(m.tanksKg).toEqual([.054,.054,.054]);
   state.oxygen=14.99;
   expect(stepMoxieGas(state,true,1).tankKg).toBe(15);
   expect(stepMoxieGas(state,true,1).oxygenKgHour).toBe(0);
@@ -42,5 +42,5 @@ it('bills only actual MOXIE runtime near 15 kg and keeps the interlock until res
   state.oxygen=14.99;
   expect(stepMicrogrid(state,6,1,options).moxie.consumption).toBe(0);
   state.oxygen=14.8;
-  expect(stepMicrogrid(state,6,1,options).moxie.consumption).toBeCloseTo(2.7,8);
+  expect(stepMicrogrid(state,6,1,options).moxie.consumption).toBeCloseTo(8.1,8);
 });

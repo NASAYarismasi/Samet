@@ -32,12 +32,12 @@ export const ROVER_TUBES = 43
 export const ROVER_WITNESS_TUBES = 5
 export const ROVER_INSTRUMENTS = ['SuperCam', 'PIXL', 'SHERLOC', 'MEDA', 'RIMFAX']
 // GAME ASSUMPTION: compact teaching sites, not surveyed Jezero locations; all synthetic values below.
-export const ROVER_HOME = { id: 'base', name: 'Üs parkı', ...ROVER_PARK }
+export const ROVER_HOME = { id: 'base', name: "Base parking", ...ROVER_PARK }
 export const ROVER_STATIONS = [
-  { id: 'seitah', name: 'Séítah · olivin', x: -26, z: 24, mineral: 'Olivin + piroksen; zayıf karbonat', elements: [17, 18, 20, 4, .4] },
-  { id: 'delta', name: 'Delta önü', x: 33, z: 30, mineral: 'Karbonat + silikat; suyla değişim izi', elements: [10, 7, 24, 12, 1.8] },
-  { id: 'salts', name: 'Tuzlu regolit', x: 45, z: 12, mineral: 'Sülfatlı regolit; perklorat adayı (kesin tanı değil)', elements: [14, 6, 22, 7, 4.6] },
-  { id: 'layers', name: 'Delta katmanları', x: 42, z: -38, mineral: 'İnce taneli silikat + karbonat', elements: [12, 9, 25, 8, 1.1] },
+  { id: 'seitah', name: "Séítah · olivine", x: -26, z: 24, mineral: "Olivine + pyroxene; weak carbonate", elements: [17, 18, 20, 4, .4] },
+  { id: 'delta', name: "Delta front", x: 33, z: 30, mineral: "Carbonate + silicate; evidence of water alteration", elements: [10, 7, 24, 12, 1.8] },
+  { id: 'salts', name: "Saline regolith", x: 45, z: 12, mineral: "Sulfate-rich regolith; perchlorate candidate (not confirmed)", elements: [14, 6, 22, 7, 4.6] },
+  { id: 'layers', name: "Delta layers", x: 42, z: -38, mineral: "Fine-grained silicate + carbonate", elements: [12, 9, 25, 8, 1.1] },
 ]
 // GAME ASSUMPTION: crew keep-outs enlarged for rover footprint; centre dome + tunnels, lander, facilities.
 export const ROVER_OBSTACLES = [...FACILITY_KEEPOUTS, ...PAD_KEEPOUTS.map(([x,z,r])=>[x,z,r+1.5])]
@@ -149,7 +149,7 @@ export function createRoverState(seed = 2026, { obstacles = ROVER_OBSTACLES } = 
   const state = { x: ROVER_HOME.x, z: ROVER_HOME.z, heading: -.6, speedMps: 0, odometerM: 0,
     mode: 'parked', target: null, batteryKWh: ROVER_BATTERY_KWH, instrumentQueue: [],
     samples: [], measurements: [], tubesRemaining: ROVER_TUBES, witnessTubes: ROVER_WITNESS_TUBES,
-    path: [], elapsedS: 0, operationRemainingS: 0, seed: seed >>> 0, message: 'Otonom keşif kampanyası başlıyor.',
+    path: [], elapsedS: 0, operationRemainingS: 0, seed: seed >>> 0, message: "Starting autonomous exploration campaign.",
     autopilot: true, waypoint: null, distanceFromBaseM: 0, campaignLeg: 0, campaignPhase: 'exploring',
     wheelAngleRad: 0, wheelAngularSpeedRadS: 0, yawRateRadS: 0, steeringRad: 0,
     sciencePending: false, samplePending: false, returnRequested: false, timeCompression: ROVER_TIME_COMPRESSION }
@@ -163,7 +163,7 @@ function driveTo(state, target) {
   state.target = {...target}; state.waypoint = {...target}; state.path = path
   state.suspendedMode=null
   state.instrumentQueue.length=0; state.operationRemainingS=0; state.mode='driving'; state.speedMps=0
-  state.message=`${target.name} için güvenli rota hazır.`
+  state.message=`${target.name} safe route ready.`
   return true
 }
 /** Seeded expanding survey rings; radius stays within the finite terrain even at cardinal bearings. */
@@ -174,7 +174,7 @@ export function nextRoverWaypoint(state) {
   const index=leg, radius=Math.min(270,150+60*Math.floor(index/4))
   const angle=index*Math.PI/2+.2+(random(state)-.5)*.16
   const context=ROVER_STATIONS[index%ROVER_STATIONS.length]
-  return {...context,id:`survey-${leg}`,name:`Keşif ${leg+1} · ${radius} m`,
+  return {...context,id:`survey-${leg}`,name:`Exploration ${leg+1} · ${radius} m`,
     x:ROVER_HOME.x+Math.cos(angle)*radius,z:ROVER_HOME.z+Math.sin(angle)*radius}
 }
 function autopilot(state) {
@@ -189,7 +189,7 @@ function autopilot(state) {
   if (state.mode!=='parked') return
   if (state.campaignPhase==='returning') { state.campaignPhase='charging'; state.returnRequested=false }
   if (state.campaignPhase==='charging') {
-    state.message='MMRTG şarj ediyor; keşif dolumdan sonra sürecek.'
+    state.message="MMRTG charging; exploration will resume after recharge."
     if (state.batteryKWh<ROVER_BATTERY_KWH*.9) return // GAME ASSUMPTION: resume at 90%.
     state.campaignPhase='exploring'
   }
@@ -206,7 +206,7 @@ function autopilot(state) {
     const target=nextRoverWaypoint(state); state.campaignLeg++
     if (driveTo(state,target)) { state.sciencePending=Math.hypot(target.x-ROVER_HOME.x,target.z-ROVER_HOME.z)>=ROVER_MIN_SCIENCE_RANGE_M; return }
   }
-  state.message='Güvenli keşif hedefi aranıyor.'
+  state.message="Searching for a safe exploration target."
 }
 /** Commands mutate this isolated sim state. Returns false with a Turkish reason if rejected. */
 export function commandRover(state, command, value) {
@@ -215,48 +215,48 @@ export function commandRover(state, command, value) {
     state.autopilot = value ?? !state.autopilot
     if (!state.autopilot) { state.suspendedMode=state.mode; state.mode='parked'; state.speedMps=0 }
     else if(state.suspendedMode) { state.mode=state.suspendedMode; state.suspendedMode=null }
-    state.message=state.autopilot?'Otopilot sürdürüldü.':'Otopilot duraklatıldı.'
+    state.message=state.autopilot?"Autopilot resumed.":"Autopilot paused."
     return true
   }
   if (command === 'park') {
     state.autopilot=false; state.sciencePending=false; state.samplePending=false
     state.mode = 'parked'; state.speedMps = 0; state.path.length = 0; state.instrumentQueue.length = 0
-    state.operationRemainingS = 0; state.message = 'Rover park edildi.'; return true
+    state.operationRemainingS = 0; state.message = "Rover parked."; return true
   }
   if(command==='cancel-return'){
-    const plan=state.returnPlan;if(!plan)return reject('İptal edilecek üs dönüşü yok.');
-    const target=plan.mode==='driving'?plan.target:{id:'resume-work',name:'Önceki görev noktası',x:plan.x,z:plan.z};
-    if(target&&!driveTo(state,target))return reject('Önceki işe güvenli rota bulunamadı.');
+    const plan=state.returnPlan;if(!plan)return reject("No return-to-base command to cancel.");
+    const target=plan.mode==='driving'?plan.target:{id:'resume-work',name:"Previous work site",x:plan.x,z:plan.z};
+    if(target&&!driveTo(state,target))return reject("No safe route back to the previous task.");
     state.autopilot=plan.autopilot;state.campaignPhase=plan.campaignPhase;state.sciencePending=plan.sciencePending;state.samplePending=plan.samplePending;state.returnRequested=false;state.returnPlan=null;
     if(plan.mode==='analyzing'||plan.mode==='sampling'){state.resumeWork={...plan};state.autopilot=false;}
     else if(plan.resumeWork){state.resumeWork=plan.resumeWork;state.autopilot=false;}
-    state.message='Üsse dönüş iptal edildi; önceki görev sürdürülüyor.';return true;
+    state.message="Return to base canceled; resuming previous task.";return true;
   }
   if (command === 'drive' || command === 'return') {
     const saved=command==='return'&&!state.returnPlan?structuredClone({x:state.x,z:state.z,mode:state.mode,target:state.target,autopilot:state.autopilot,campaignPhase:state.campaignPhase,sciencePending:state.sciencePending,samplePending:state.samplePending,instrumentQueue:state.instrumentQueue,operationRemainingS:state.operationRemainingS,resumeWork:state.resumeWork??null}):null;
     const target = command === 'return' ? ROVER_HOME : ROVER_STATIONS.find(s => s.id === value)
-    if (!target) return reject('Geçerli bir bilim istasyonu seç.')
-    if (!driveTo(state,target)) return reject('Güvenli rota bulunamadı.')
+    if (!target) return reject("Select a valid science station.")
+    if (!driveTo(state,target)) return reject("No safe route found.")
     if(command==='return') { if(saved)state.returnPlan=saved;state.autopilot=true; state.campaignPhase='returning'; state.sciencePending=false; state.samplePending=false }
     else state.autopilot=false // Legacy commands retained for integration; computer exposes autopilot only.
     return true
   }
-  if (state.mode !== 'parked') return reject('Önce sürüşün veya işlemin bitmesini bekle / Park et.')
-  if (!stationAt(state)) return reject('Analiz ve numune için bilim istasyonuna sür.')
-  if (state.batteryKWh < .05) return reject('Batarya düşük; MMRTG şarjını bekle.') // GAME ASSUMPTION: reserve.
+  if (state.mode !== 'parked') return reject("Wait for driving or the current operation to finish / Park first.")
+  if (!stationAt(state)) return reject("Drive to a science station for analysis and sampling.")
+  if (state.batteryKWh < .05) return reject("Battery low; wait for MMRTG charging.") // GAME ASSUMPTION: reserve.
   if (command === 'analyze') {
     const instruments = value === 'all' ? ROVER_INSTRUMENTS : [value]
-    if (instruments.some(i => !ROVER_INSTRUMENTS.includes(i))) return reject('Bilinmeyen cihaz.')
+    if (instruments.some(i => !ROVER_INSTRUMENTS.includes(i))) return reject("Unknown instrument.")
     state.instrumentQueue = [...instruments]; state.mode = 'analyzing'
     state.operationRemainingS = 24 // GAME ASSUMPTION: compressed instrument acquisition time.
-    state.message = 'Bilim cihazları veri topluyor.'; return true
+    state.message = "Science instruments collecting data."; return true
   }
   if (command === 'sample') {
-    if (state.samples.length >= ROVER_TUBES - ROVER_WITNESS_TUBES) return reject('Kaya tüpleri dolu; 5 tanık tüpü ayrıldı.')
+    if (state.samples.length >= ROVER_TUBES - ROVER_WITNESS_TUBES) return reject("Rock sample tubes full; 5 witness tubes reserved.")
     state.mode = 'sampling'; state.operationRemainingS = 45 // GAME ASSUMPTION: compressed coring/sealing time.
-    state.message = 'Karot alınıyor ve tüp mühürleniyor.'; return true
+    state.message = "Coring and sealing sample tube."; return true
   }
-  return reject('Bilinmeyen rover komutu.')
+  return reject("Unknown rover command.")
 }
 function random(state) { state.seed = (Math.imul(state.seed, 1664525) + 1013904223) >>> 0; return state.seed / 4294967296 }
 const round = v => Math.round(v * 100) / 100
@@ -276,19 +276,19 @@ function measure(state, instrument, site) {
   } else if (instrument === 'PIXL') {
     const elements = ['Fe', 'Mg', 'Si', 'Ca', 'S']
     elements.forEach((e, i) => { result.values[e] = round(site.elements[i] * (.96 + random(state) * .08)) })
-    result.values.unit = 'wt%'; result.summary = elements.map(e => `${e} ${result.values[e]}%`).join(' · ') + ' (kalan: O ve diğerleri)'
+    result.values.unit = 'wt%'; result.summary = elements.map(e => `${e} ${result.values[e]}%`).join(' · ') + " (remainder: O and other elements)"
   } else if (instrument === 'SHERLOC') {
     result.values = { organicsCandidate: r > .4, confirmedLife: false }
-    result.summary = r > .4 ? 'Floresans adayı; organik köken doğrulanmadı. Yaşam kanıtı değildir.' : 'Organik aday sinyali eşik altında; mineral floresansı baskın.'
+    result.summary = r > .4 ? "Fluorescence candidate; organic origin unconfirmed. Not evidence of life." : "Organic candidate signal below threshold; mineral fluorescence dominates."
   } else if (instrument === 'MEDA') {
     result.values = { pressurePa: round(600 + r * 150), airTemperatureK: round(205 + random(state) * 35), windMps: round(1 + random(state) * 9), dustOpacity: round(.25 + random(state) * .65) }
-    result.summary = 'Basınç, hava sıcaklığı, rüzgâr ve optik toz kalınlığı ölçüldü.'
+    result.summary = "Measured pressure, air temperature, wind and dust optical depth."
   } else {
     result.values = { layerDepthM: round(2 + r * 12), dipRad: round(.05 + random(state) * .3) }
-    result.summary = `${result.values.layerDepthM} m derinde tabakalı yansıtıcı; buz tanısı değildir.`
+    result.summary = `${result.values.layerDepthM} m deep layered reflector; not a confirmed ice detection.`
   }
   state.measurements.push(result)
-  state.message = `${instrument} ölçümü kaydedildi.`
+  state.message = `${instrument} measurement recorded.`
 }
 /** Fixed sim step (caller uses <= .1 s). Warp changes elapsed simulation seconds, never speed limit. */
 // GAME ASSUMPTION: dock charger maximum 250 W; colony adapter reserves the delivered energy.
@@ -303,7 +303,7 @@ export function stepRover(state, dt, {dockPowerW=0}={}) {
     state.mode='parked'; state.path=[]; state.campaignPhase='charging'; state.sciencePending=false; state.samplePending=false
   }
   if(state.resumeWork&&state.mode==='parked'){
-    const work=state.resumeWork;state.resumeWork=null;state.mode=work.mode;state.instrumentQueue=[...work.instrumentQueue];state.operationRemainingS=work.operationRemainingS;state.target=work.target;state.autopilot=work.autopilot;state.message='Yarıda kalan görev kaldığı yerden sürüyor.';
+    const work=state.resumeWork;state.resumeWork=null;state.mode=work.mode;state.instrumentQueue=[...work.instrumentQueue];state.operationRemainingS=work.operationRemainingS;state.target=work.target;state.autopilot=work.autopilot;state.message="Resuming the interrupted task from where it stopped.";
   }
   if(state.returnPlan&&state.campaignPhase==='charging'&&state.distanceFromBaseM<.7)state.returnPlan=null;
   autopilot(state)
@@ -316,7 +316,7 @@ export function stepRover(state, dt, {dockPowerW=0}={}) {
     const next = state.path[0]
     if (!next) { state.mode = 'parked'; return state }
     const dx = next.x - state.x, dz = next.z - state.z, d = Math.hypot(dx, dz)
-    if (d < 1e-8) { state.path.shift(); if (!state.path.length) { state.mode = 'parked'; state.message = 'Hedefe ulaşıldı. Bilim işlemi seç.' }; return state }
+    if (d < 1e-8) { state.path.shift(); if (!state.path.length) { state.mode = 'parked'; state.message = "Destination reached. Select a science operation." }; return state }
     const desired = Math.atan2(dx, dz), error = Math.atan2(Math.sin(desired - state.heading), Math.cos(desired - state.heading))
     const turn = Math.min(Math.abs(error), ROVER_TURN_RAD_S * dt)
     state.heading += Math.sign(error) * turn
@@ -337,7 +337,7 @@ export function stepRover(state, dt, {dockPowerW=0}={}) {
       if (!site) { state.mode='parked'; state.operationRemainingS=0; return state }
       if (state.mode === 'sampling') {
         state.samples.push({ tube: state.samples.length + 1, stationId: site.id, stationName: site.name, elapsedS: state.elapsedS, sealed: true })
-        state.tubesRemaining = ROVER_TUBES - state.samples.length; state.message = 'Numune mühürlendi.'
+        state.tubesRemaining = ROVER_TUBES - state.samples.length; state.message = "Sample sealed."
       } else {
         measure(state, state.instrumentQueue.shift(), site)
         if (state.instrumentQueue.length) { state.operationRemainingS = 24; return state }

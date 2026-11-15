@@ -2,8 +2,8 @@ import { it, expect } from 'vitest';
 import { SUIT, MARS_GRAVITY, createSuitMotion, stepSuitMotion } from '../src/sim/surfaceMotion.js';
 it('has a stable ground state and SI suit speeds', () => {
   expect(stepSuitMotion(createSuitMotion(), 1/60)).toEqual(createSuitMotion());
-  expect(SUIT.walkSpeed).toBe(1.2);
-  expect(SUIT.runSpeed).toBe(3.0);
+  expect(SUIT.walkSpeed).toBe(1.8);
+  expect(SUIT.runSpeed).toBe(4.5);
   expect(() => stepSuitMotion(createSuitMotion(), -1)).toThrow();
 });
 it('matches a Mars ballistic jump, ignores airborne retrigger and lands without sinking', () => {

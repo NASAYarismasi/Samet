@@ -1,166 +1,166 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width,initial-scale=1">
  <meta name="theme-color" content="#040a10">
- <title>Mars’a İlk Koloni | Düz Ova Kolonisi</title>
+ <title>First Colony on Mars | Flat Plains Colony</title>
  <link rel="icon" href="data:,">
  <link rel="stylesheet" href="/src/style.css">
  <link rel="stylesheet" href="/src/colony/colony.css">
 </head>
 <body class="colony-page">
 <main data-start-view="fps">
- <section id="viewport" aria-label="Koloni sahnesi">
-  <canvas id="scene" tabindex="0" aria-label="Mars üssünün üç boyutlu görünümü"></canvas>
+ <section id="viewport" aria-label="Colony scene">
+  <canvas id="scene" tabindex="0" aria-label="3D view of the Mars base"></canvas>
   <div id="fps-hud"><div id="helmet"></div><div id="reticle" aria-hidden="true"></div><div id="aim"></div></div>
   <div id="scene-hud"></div>
  </section>
- <button id="surface-settings-toggle" type="button" aria-haspopup="dialog" aria-label="Yüzey ayarları">Esc</button>
+ <button id="surface-settings-toggle" type="button" aria-haspopup="dialog" aria-label="Surface settings">Esc</button>
  <dialog id="surface-settings" aria-labelledby="surface-settings-title">
-   <header><h2 id="surface-settings-title">Yüzey ayarları</h2><button type="button" data-surface="resume" aria-label="Ayarları kapat" autofocus>×</button></header>
+   <header><h2 id="surface-settings-title">Surface settings</h2><button type="button" data-surface="resume" aria-label="Close settings" autofocus>×</button></header>
    <div class="surface-settings-tools">
-     <button type="button" data-surface="day">Gündüze geç</button>
-     <button type="button" data-surface="night">Geceye geç</button>
-     <button type="button" data-surface="audio">Sesi kapat</button>
-     <button type="button" data-surface="lamp">Kafa lambasını aç</button>
+     <button type="button" data-surface="day">Skip to daytime</button>
+     <button type="button" data-surface="night">Skip to nighttime</button>
+     <button type="button" data-surface="audio">Mute</button>
+     <button type="button" data-surface="lamp">Turn headlamp on</button>
    </div>
-   <p class="surface-settings-note">Gündüz ve gece seçimi Mars saatini ve koloni simülasyonunu ileri alır.</p>
-   <nav aria-label="Görev bölümleri">
-     <a href="./flight.html?bolum=transfer">Transfere dön ↗</a>
-     <a href="./index.html">Ana menüye dön ↗</a>
+   <p class="surface-settings-note">Day and night selection advances the Mars clock and colony simulation.</p>
+   <nav aria-label="Mission chapters">
+     <a href="./flight.html?bolum=transfer">Return to transfer ↗</a>
+     <a href="./index.html">Return to main menu ↗</a>
    </nav>
-   <button class="surface-resume" type="button" data-surface="resume">Mars’a dön</button>
+   <button class="surface-resume" type="button" data-surface="resume">Return to Mars</button>
  </dialog>
  <div class="colony-ui">
   <header class="colony-topbar">
-   <a class="colony-identity" href="./" aria-label="Uçuş görev kontrolüne dön"><span class="colony-mark" aria-hidden="true">M<span>01</span></span><span><b>MARS’A İLK KOLONİ</b><small>YÜZEY GÖREVİ / DÜZ OVA</small></span></a>
-   <div class="colony-mission"><span class="live-dot" aria-hidden="true"></span><span>Üç astronot · Kalıcı bir başlangıç</span></div>
+   <a class="colony-identity" href="./" aria-label="Return to flight mission control"><span class="colony-mark" aria-hidden="true">M<span>01</span></span><span><b>FIRST COLONY ON MARS</b><small>SURFACE MISSION / FLAT PLAINS</small></span></a>
+   <div class="colony-mission"><span class="live-dot" aria-hidden="true"></span><span>Three astronauts · A lasting beginning</span></div>
    <div class="colony-clock"><strong id="sol"></strong><small id="weather"></small></div>
   </header>
   <div class="landing-strip"><span id="landing-source" role="status"></span></div>
   <div class="drawer-deck">
-   <nav class="drawer-nav" aria-label="Koloni yönetim panelleri">
-    <span class="nav-caption">GÖREV SİSTEMLERİ</span>
-    <button type="button" id="resources-toggle" data-drawer="resources-drawer" aria-controls="resources-drawer" aria-expanded="false"><span>01</span> Kaynaklar</button>
-    <button type="button" id="crew-toggle" data-drawer="crew-drawer" aria-controls="crew-drawer" aria-expanded="false"><span>02</span> Mürettebat</button>
-    <button type="button" id="modules-toggle" data-drawer="modules-drawer" aria-controls="modules-drawer" aria-expanded="false"><span>03</span> Modüller</button>
+   <nav class="drawer-nav" aria-label="Colony management panels">
+    <span class="nav-caption">MISSION SYSTEMS</span>
+    <button type="button" id="resources-toggle" data-drawer="resources-drawer" aria-controls="resources-drawer" aria-expanded="false"><span>01</span> Resources</button>
+    <button type="button" id="crew-toggle" data-drawer="crew-drawer" aria-controls="crew-drawer" aria-expanded="false"><span>02</span> Crew</button>
+    <button type="button" id="modules-toggle" data-drawer="modules-drawer" aria-controls="modules-drawer" aria-expanded="false"><span>03</span> Modules</button>
     <!-- SYNC: mission planning uses the existing drawer controller. -->
-    <button type="button" id="cargo-toggle" data-drawer="cargo-drawer" aria-controls="cargo-drawer" aria-expanded="false"><span>07</span> Dünya yük planı</button>
-    <button type="button" id="workshop-toggle" data-drawer="workshop-drawer" aria-controls="workshop-drawer" aria-expanded="false"><span>04</span> Atölye / tarım</button>
-    <button type="button" id="report-toggle" data-drawer="report-drawer" aria-controls="report-drawer" aria-expanded="false"><span>05</span> Görev raporu</button>
-    <button type="button" id="realism-toggle" data-drawer="realism-drawer" aria-controls="realism-drawer" aria-expanded="false"><span>ℹ</span> Gerçek veriler</button>
-    <button type="button" id="view-toggle" data-drawer="view-drawer" aria-controls="view-drawer" aria-expanded="false"><span>06</span> Görünüm / yardım</button>
-    <button type="button" id="eclss-toggle" data-drawer="eclss-drawer" aria-controls="eclss-drawer" aria-expanded="false"><span>08</span> ECLSS dengesi</button>
-    <button type="button" id="life-toggle" data-drawer="life-drawer" aria-controls="life-drawer" aria-expanded="false"><span>09</span> Yaşam destek tesisleri</button>
+    <button type="button" id="cargo-toggle" data-drawer="cargo-drawer" aria-controls="cargo-drawer" aria-expanded="false"><span>07</span> Earth cargo manifest</button>
+    <button type="button" id="workshop-toggle" data-drawer="workshop-drawer" aria-controls="workshop-drawer" aria-expanded="false"><span>04</span> Workshop / farming</button>
+    <button type="button" id="report-toggle" data-drawer="report-drawer" aria-controls="report-drawer" aria-expanded="false"><span>05</span> Mission report</button>
+    <button type="button" id="realism-toggle" data-drawer="realism-drawer" aria-controls="realism-drawer" aria-expanded="false"><span>ℹ</span> Reference data</button>
+    <button type="button" id="view-toggle" data-drawer="view-drawer" aria-controls="view-drawer" aria-expanded="false"><span>06</span> View / help</button>
+    <button type="button" id="eclss-toggle" data-drawer="eclss-drawer" aria-controls="eclss-drawer" aria-expanded="false"><span>08</span> ECLSS balance</button>
+    <button type="button" id="life-toggle" data-drawer="life-drawer" aria-controls="life-drawer" aria-expanded="false"><span>09</span> Life support facilities</button>
    </nav>
    <section id="resources-drawer" class="colony-drawer" aria-labelledby="resources-toggle" hidden>
-    <header class="drawer-heading"><h2>Stok ve enerji</h2><button type="button" data-close-drawer aria-label="Kaynakları kapat">×</button></header>
+    <header class="drawer-heading"><h2>Supplies and energy</h2><button type="button" data-close-drawer aria-label="Close resources">×</button></header>
     <div class="drawer-content">
-     <h3>Yaşam desteği <button type="button" class="info-button" data-realism="supplies" aria-label="Erzak birimlerinin gerçek karşılığı">ℹ</button></h3>
-     <p id="resources"></p><small class="unit-note">Erzak: kişi-sol · Yedek parça: adet</small>
+     <h3>Life support <button type="button" class="info-button" data-realism="supplies" aria-label="Real-world equivalents of supply units">ℹ</button></h3>
+     <p id="resources"></p><small class="unit-note">Supplies: person-sols · Spare parts: units</small>
      <p id="system-status" role="status"></p>
-     <p class="muted">1 erzak birimi = 1 kişinin 1 sollük ihtiyacı. Üç kişi, her sol her kaynaktan 3 birim tüketir.</p>
-     <div class="group"><h3>Güç sistemi <button type="button" class="info-button" data-realism="solar" aria-label="Mars’ta güneş enerjisi hakkında">ℹ</button></h3><p id="energy"></p><small>Enerji ve batarya sayıları oyun birimidir; watt veya kWh değildir.</small></div>
-     <div class="group"><label class="check"><input type="checkbox" id="priority" checked> Yaşam desteğine öncelik ver</label><button class="primary" id="advance" type="button">Bir sol ilerlet</button><p class="muted">Önce modülleri yerleştir ve ekip görevlerini ata. Bu düğme kaynak hesabını bir sol ilerletir.</p></div>
+     <p class="muted">1 supply unit supports 1 person for 1 sol. Three people consume 3 units of each resource per sol.</p>
+     <div class="group"><h3>Power system <button type="button" class="info-button" data-realism="solar" aria-label="About solar energy on Mars">ℹ</button></h3><p id="energy"></p><small>Energy and battery values are game units, not watts or kWh.</small></div>
+     <div class="group"><label class="check"><input type="checkbox" id="priority" checked> Prioritize life support</label><button class="primary" id="advance" type="button">Advance one sol</button><p class="muted">Place modules and assign crew roles first. This button advances the resource calculation by one sol.</p></div>
     </div>
    </section>
    <section id="cargo-drawer" class="colony-drawer" aria-labelledby="cargo-toggle" hidden>
-    <header class="drawer-heading"><h2>Dünya yük planı</h2><button type="button" data-close-drawer aria-label="Yük planını kapat">×</button></header>
+    <header class="drawer-heading"><h2>Earth cargo manifest</h2><button type="button" data-close-drawer aria-label="Close cargo manifest">×</button></header>
     <div class="drawer-content">
-     <p class="muted">Üç astronot için yüzeye inecek erzak ve donanımı seç. Uçuştan gelen iniş verisi varsa gerçek uçuş stokları kullanılır.</p>
+     <p class="muted">Choose supplies and equipment for three astronauts. When flight landing data is available, the actual remaining flight supplies are used.</p>
      <form id="cargo-form">
       <div class="manifest-form">
-       <label>Paketli öğün (ekip-solü) <input name="mealDays" type="number" min="2" max="20" step="1" required></label>
-       <label>İçme suyu (ekip-solü) <input name="waterDays" type="number" min="2" max="20" step="1" required></label>
-       <label>Yedek oksijen (ekip-solü) <input name="oxygenDays" type="number" min="2" max="20" step="1" required></label>
-       <label>Yedek parça <input name="spareParts" type="number" min="0" max="6" step="1" required></label>
-       <label>Paket türü <select name="driedMealShare"><option value="0">Hazır öğün</option><option value="0.5">Karma</option><option value="1">Liyofilize</option></select></label>
+       <label>Packaged meals (crew-sols) <input name="mealDays" type="number" min="2" max="20" step="1" required></label>
+       <label>Drinking water (crew-sols) <input name="waterDays" type="number" min="2" max="20" step="1" required></label>
+       <label>Reserve oxygen (crew-sols) <input name="oxygenDays" type="number" min="2" max="20" step="1" required></label>
+       <label>Spare parts <input name="spareParts" type="number" min="0" max="6" step="1" required></label>
+       <label>Meal type <select name="driedMealShare"><option value="0">Ready-to-eat meals</option><option value="0.5">Mixed</option><option value="1">Freeze-dried</option></select></label>
       </div>
       <div id="cargo-kit" class="manifest-kit group"></div>
       <p id="cargo-total" role="status"></p><p id="transit-plan" class="muted"></p>
-      <details><summary>Yük listesini göster</summary><ul id="cargo-list"></ul></details>
-      <p><button class="primary" id="cargo-launch" type="submit">Yükü onayla ve operasyonu başlat</button></p>
-      <small>Liyofilize öğün hazırlamak için su gerekir. Kütle sınırı, cihaz ağırlıkları ve geri kazanım verimleri oyun varsayımlarıdır. Onaylama mevcut koloni turunu yeniden başlatır.</small>
+      <details><summary>Show cargo list</summary><ul id="cargo-list"></ul></details>
+      <p><button class="primary" id="cargo-launch" type="submit">Confirm cargo and start operations</button></p>
+      <small>Freeze-dried meals require water. Mass limits, equipment masses and recovery efficiencies are game assumptions. Confirming restarts the current colony run.</small>
      </form>
-     <div class="group"><h3>İniş JSON’u yükle</h3><label>Uçuş iniş dosyası <input id="landing-file" type="file" accept=".json,application/json"></label><p id="landing-status" role="status"></p><small>crew, supplies, modules, landingSite ve surfaceEnergy alanları gerekir. Uçuş stokları ekip-solünden kişi-solüne bir kez çevrilir.</small></div>
+     <div class="group"><h3>Load landing JSON</h3><label>Flight landing file <input id="landing-file" type="file" accept=".json,application/json"></label><p id="landing-status" role="status"></p><small>The crew, supplies, modules, landingSite and surfaceEnergy fields are required. Flight supplies are converted from crew-sols to person-sols once.</small></div>
     </div>
    </section>
    <section id="crew-drawer" class="colony-drawer" aria-labelledby="crew-toggle" hidden>
-    <header class="drawer-heading"><h2>Mürettebat</h2><button type="button" data-close-drawer aria-label="Mürettebatı kapat">×</button></header>
-    <div class="drawer-content"><div id="crew"></div><p class="muted">İnşaat: kişi başına 2 modül. Üretim: su, oksijen ve sera. Bakım: fırtınada yedek parça kullanır. Görevler her sol başında yeniden atanır.</p><p class="unit-note">Görev kapasiteleri ve sağlık, eğitsel oyun modelidir.</p></div>
+    <header class="drawer-heading"><h2>Crew</h2><button type="button" data-close-drawer aria-label="Close crew">×</button></header>
+    <div class="drawer-content"><div id="crew"></div><p class="muted">Construction: 2 modules per person. Production: water, oxygen and greenhouse. Maintenance: uses spare parts during storms. Roles are reassigned at the start of each sol.</p><p class="unit-note">Role capacities and health are an educational game model.</p></div>
    </section>
    <section id="modules-drawer" class="colony-drawer" aria-labelledby="modules-toggle" hidden>
-    <header class="drawer-heading"><h2>Modül envanteri</h2><button type="button" data-close-drawer aria-label="Modülleri kapat">×</button></header>
-    <div class="drawer-content"><div id="inventory" class="buttons"></div><p class="muted" id="selected"></p><p id="buildings"></p><p class="muted">Modül seç, paneli kapat ve uygun yüzeye yerleştir. Astronot görünümünde E; üs planında tıkla.</p><p class="unit-note">Oksijen ünitesi, insanlı üs ölçeğinde bir oyun konseptidir. <button type="button" class="info-button" data-realism="moxie" aria-label="Gerçek MOXIE üretim kapasitesi">ℹ</button></p></div>
+    <header class="drawer-heading"><h2>Module inventory</h2><button type="button" data-close-drawer aria-label="Close modules">×</button></header>
+    <div class="drawer-content"><div id="inventory" class="buttons"></div><p class="muted" id="selected"></p><p id="buildings"></p><p class="muted">Select a module, close the panel and place it on a suitable surface. Press E in astronaut view or click in base view.</p><p class="unit-note">The oxygen unit is a game concept scaled for a crewed base. <button type="button" class="info-button" data-realism="moxie" aria-label="Real MOXIE production capacity">ℹ</button></p></div>
    </section>
    <section id="workshop-drawer" class="colony-drawer" aria-labelledby="workshop-toggle" hidden>
-    <header class="drawer-heading"><h2>Atölye ve tarım</h2><button type="button" data-close-drawer aria-label="Atölyeyi kapat">×</button></header>
-    <div class="drawer-content"><p id="workshop-stock"></p><p id="workshop-skills"></p><p id="workshop-message" role="status" class="muted">Seradaki kabinleri yetiştir; hasadı erzağa aktar.</p>
-     <div class="group"><h3>Tarifler</h3><div class="workshop-actions" id="recipes"></div></div>
-     <div class="group"><h3>Mahsul ve teslimat</h3><div class="workshop-actions" id="harvests"></div><div class="workshop-actions" id="trade"></div><p><small>Tarım kabinleri, sera üretimdeyken büyür. Hasat için kabine bakıp E’ye basabilir veya buradaki düğmeyi kullanabilirsin.</small></p></div>
-     <p class="unit-note">Büyüme süreleri, tarifler, krediler ve kaynak verimleri oyun modelidir.</p>
+    <header class="drawer-heading"><h2>Workshop and farming</h2><button type="button" data-close-drawer aria-label="Close workshop">×</button></header>
+    <div class="drawer-content"><p id="workshop-stock"></p><p id="workshop-skills"></p><p id="workshop-message" role="status" class="muted">Grow crops in greenhouse pods and transfer the harvest to supplies.</p>
+     <div class="group"><h3>Recipes</h3><div class="workshop-actions" id="recipes"></div></div>
+     <div class="group"><h3>Crops and deliveries</h3><div class="workshop-actions" id="harvests"></div><div class="workshop-actions" id="trade"></div><p><small>Crop pods grow while the greenhouse is producing. Look at a pod and press E to harvest, or use its button here.</small></p></div>
+     <p class="unit-note">Growth times, recipes, credits and resource yields are game assumptions.</p>
     </div>
    </section>
    <section id="report-drawer" class="colony-drawer" aria-labelledby="report-toggle" hidden>
-    <header class="drawer-heading"><h2>Görev raporu</h2><button type="button" data-close-drawer aria-label="Raporu kapat">×</button></header>
-    <div class="drawer-content"><p id="outcome" role="status"></p><small>Üç astronot hayatta kalmalı ve son üç solun her birinde tüm temel ihtiyaçlar karşılanmalı.</small><ul id="reasons"></ul>
-     <div class="table" tabindex="0" role="region" aria-label="Sol günlüğü, yatay kaydırılabilir"><table><thead><tr><th scope="col">Sol</th><th scope="col">Hava</th><th scope="col">Üretim</th><th scope="col">Tüketim</th><th scope="col">Batarya</th><th scope="col">Temel ihtiyaçlar</th></tr></thead><tbody id="log"></tbody></table></div>
-     <div class="buttons"><button id="report" type="button">Sonuç JSON’unu indir</button><button id="reset" type="button">Yeniden başla</button></div>
+    <header class="drawer-heading"><h2>Mission report</h2><button type="button" data-close-drawer aria-label="Close report">×</button></header>
+    <div class="drawer-content"><p id="outcome" role="status"></p><small>All three astronauts must survive, and all essential needs must be met on each of the final three sols.</small><ul id="reasons"></ul>
+     <div class="table" tabindex="0" role="region" aria-label="Sol log, horizontally scrollable"><table><thead><tr><th scope="col">Sol</th><th scope="col">Weather</th><th scope="col">Production</th><th scope="col">Consumption</th><th scope="col">Battery</th><th scope="col">Essential needs</th></tr></thead><tbody id="log"></tbody></table></div>
+     <div class="buttons"><button id="report" type="button">Download result JSON</button><button id="reset" type="button">Restart</button></div>
     </div>
    </section>
    <section id="realism-drawer" class="colony-drawer" aria-labelledby="realism-toggle" hidden>
-    <header class="drawer-heading"><h2>ℹ Gerçek veriler</h2><button type="button" data-close-drawer aria-label="Gerçek verileri kapat">×</button></header>
-    <div class="drawer-content"><p class="muted">Gerçek ölçümler, yaklaşık referanslar ve oyun kabulleri. Bu notlar koloni kurallarını değiştirmez.</p><div id="realism-notes"></div></div>
+    <header class="drawer-heading"><h2>ℹ Reference data</h2><button type="button" data-close-drawer aria-label="Close reference data">×</button></header>
+    <div class="drawer-content"><p class="muted">Measured data, approximate references and game assumptions. These notes do not change colony rules.</p><div id="realism-notes"></div></div>
    </section>
    <section id="life-drawer" class="colony-drawer" aria-labelledby="life-toggle" hidden>
-    <header class="drawer-heading"><h2>Yaşam destek tesisleri</h2><button type="button" data-close-drawer aria-label="Yaşam destek tesislerini kapat">×</button></header>
+    <header class="drawer-heading"><h2>Life support facilities</h2><button type="button" data-close-drawer aria-label="Close life support facilities">×</button></header>
     <div class="drawer-content">
-     <p class="muted">İhan’ın hava ve su tesisleri · Mürettebat ve koloninin güç bütçesiyle sürekli hesaplanır. Bir sol: 24,66 saat. Değerler görev başlangıcından beri birikir.</p>
-     <h3>Hava tesisi / O₂ ve CO₂</h3>
-     <dl class="eclss-results"><dt>O₂ rezervi</dt><dd id="life-oxygen">—</dd><dt>O₂ üretildi</dt><dd id="life-produced">—</dd><dt>O₂ tüketildi</dt><dd id="life-consumed">—</dd><dt>CO₂ uzaklaştırıldı</dt><dd id="life-co2">—</dd></dl>
-     <h3>Su tesisi / Buz ve geri kazanım</h3>
-     <dl class="eclss-results"><dt>Temiz su rezervi</dt><dd id="life-water">—</dd><dt>Buzdan çıkarıldı</dt><dd id="life-extracted">—</dd><dt>Geri kazanıldı</dt><dd id="life-recycled">—</dd><dt>Güç / ayrılabilir güç</dt><dd id="life-power">—</dd></dl>
-     <p class="unit-note">Diğer koloni yüklerinden kalan enerji kullanılır. Açık güç bağlantısı varsayımı: 1 oyun enerji birimi = 12 kWh. Fiziksel tesis rezervleri koloni oyun stoklarından ayrı izlenir; 3B güneş tarlası kendiliğinden enerji kredisi vermez.</p>
-     <div class="buttons"><button type="button" data-ova-view="greenhouse">Serayı gör</button><button type="button" data-ova-view="air">Hava tesisi</button><button type="button" data-ova-view="water">Su tesisi</button><button type="button" data-ova-view="comms">Haberleşme kulesi</button></div><div class="buttons"><button type="button" data-console="air">Hava tableti</button><button type="button" data-console="water">Su tableti</button><button type="button" data-console="greenhouse">Sera tableti</button><button type="button" data-console="habitat">Yaşam alanı tableti</button><button type="button" data-console="solar">Güneş tableti</button><button type="button" data-console="rover">Rover tableti</button></div>
-     <div class="group"><h3>Sera / Hava kilidi</h3><p>Seranın ön kapısına yaklaş ve bak. E ile hava kilidine gir; basınç döngüsü tamamlanınca ikinci kapıyı E ile aç. İçeride WASD ile yürü. Çıkış aynı sırayı izler. Güneş ufkun altına indiğinde mor LED’ler açılır.</p></div>
-     <details class="group"><summary>ℹ Bilimsel sınırlar ve varsayımlar</summary>
-      <p>Hava: 0,108 kg O₂/saat, 2,7 kW. Dokuz küçük MOXIE’nin zirve üretiminin sürekli sağlandığı varsayılır; bu tesis Mars’ta doğrulanmış değildir. Fan 0,3 kW, CO₂ giderimi 0,5 kW ön tasarım değerleridir. CO₂ kütlesi ppm veya güvenlik göstergesi değildir.</p>
-      <p>Su: 2 kW ile 20 L / 6 saat; %50 buz oranı, %80 yakalama. Geri kazanım %85; 0,3 kW ve 5 L/saat. İnsan tüketimleri Dünya günü üzerinden saatliğe çevrilir. Kirleticiler, kazı direnci ve ilk ısıtma ayrıntıları modellenmez.</p>
-      <p>Kabin basıncı, sıcaklık, nem ve gaz karışımı hesaplanmaz. Sera hava kilidi basınç animasyonu kavramsaldır. Alg ve bitkiler için doğrulanmış O₂ üretim kredisi eklenmez. Bu modeller gerçek yaşam desteği yeterlilik garantisi değildir.</p>
+     <p class="muted">İhan’s air and water facilities · Continuously calculated from crew needs and the colony power budget. One sol: 24.66 hours. Values accumulate from mission start.</p>
+     <h3>Air plant / O₂ and CO₂</h3>
+     <dl class="eclss-results"><dt>O₂ reserve</dt><dd id="life-oxygen">—</dd><dt>O₂ produced</dt><dd id="life-produced">—</dd><dt>O₂ consumed</dt><dd id="life-consumed">—</dd><dt>CO₂ removed</dt><dd id="life-co2">—</dd></dl>
+     <h3>Water plant / Ice and recovery</h3>
+     <dl class="eclss-results"><dt>Clean water reserve</dt><dd id="life-water">—</dd><dt>Extracted from ice</dt><dd id="life-extracted">—</dd><dt>Recovered</dt><dd id="life-recycled">—</dd><dt>Power / available power</dt><dd id="life-power">—</dd></dl>
+     <p class="unit-note">Uses energy remaining after other colony loads. Explicit power-link assumption: 1 game energy unit = 12 kWh. Physical plant reserves are tracked separately from colony game supplies; the 3D solar farm does not automatically grant energy credits.</p>
+     <div class="buttons"><button type="button" data-ova-view="greenhouse">View greenhouse</button><button type="button" data-ova-view="air">Air plant</button><button type="button" data-ova-view="water">Water plant</button><button type="button" data-ova-view="comms">Communications tower</button></div><div class="buttons"><button type="button" data-console="air">Air tablet</button><button type="button" data-console="water">Water tablet</button><button type="button" data-console="greenhouse">Greenhouse tablet</button><button type="button" data-console="habitat">Habitat tablet</button><button type="button" data-console="solar">Solar tablet</button><button type="button" data-console="rover">Rover tablet</button></div>
+     <div class="group"><h3>Greenhouse / Airlock</h3><p>Approach and look at the greenhouse entrance. Press E to enter the airlock; after pressure equalization, press E to open the second door. Move with WASD. Follow the same sequence to exit. Purple LEDs turn on after sunset.</p></div>
+     <details class="group"><summary>ℹ Scientific limitations and assumptions</summary>
+      <p>Legacy air model: 0.108 kg O₂/h, 2.7 kW. Continuous peak output from nine small MOXIE units is assumed; this plant has not been validated on Mars. Fan power of 0.3 kW and CO₂ removal power of 0.5 kW are preliminary design values. CO₂ mass is not a ppm reading or safety indicator.</p>
+      <p>Water: 20 L per 6 hours at 2 kW; 50% ice and 80% capture. Recovery: 85%, 0.3 kW and 5 L/h. Human consumption is converted from Earth-day to hourly rates. Contaminants, excavation resistance and initial heating details are not modeled.</p>
+      <p>Cabin pressure, temperature, humidity and gas composition are not calculated. Greenhouse airlock pressure animation is conceptual. No validated oxygen production credit is granted for algae or plants. These models do not guarantee real life-support adequacy.</p>
      </details>
     </div>
    </section>
    <section id="eclss-drawer" class="colony-drawer" aria-labelledby="eclss-toggle" hidden>
-    <header class="drawer-heading"><h2>ECLSS dengesi</h2><button type="button" data-close-drawer aria-label="ECLSS panelini kapat">×</button></header>
+    <header class="drawer-heading"><h2>ECLSS balance</h2><button type="button" data-close-drawer aria-label="Close ECLSS panel">×</button></header>
     <div class="drawer-content">
-     <p class="muted">İhan’ın üç kişilik yaşam desteği hesaplayıcısı. Bağımsız planlama örneğidir; koloni stoklarını değiştirmez. Süre Dünya günüdür.</p>
-     <label>Süre <output id="eclss-days-value"></output><input id="eclss-days" type="range" min="1" max="30" value="10"></label>
-     <label>Su geri kazanımı <output id="eclss-recovery-value"></output><input id="eclss-recovery" type="range" min="0" max="98" value="85"></label>
-     <label class="check"><input id="eclss-electrolysis" type="checkbox" checked> Oksijeni su elektroliziyle üret</label>
-     <dl class="eclss-results"><dt>Gerekli su</dt><dd id="eclss-water"></dd><dt>Geri kazanılan su</dt><dd id="eclss-savedWater"></dd><dt>Yedek oksijen</dt><dd id="eclss-oxygen"></dd><dt>Gıda enerjisi</dt><dd id="eclss-foodKcal"></dd></dl>
-     <div class="group"><h3>Güneş tarlası · 420 panel</h3><label>Örnek üretim koşulu <select id="eclss-weather"><option value="1">Açık · %100</option><option value="0.5">Tozlu · %50</option><option value="0.1">Fırtına · %10</option></select></label><p id="eclss-solar"></p><small>420 kWh/sol üretim ve 413 kWh/sol tüketim İhan’ın örnek tasarım kabulleridir. Oyun enerji birimlerinden bağımsızdır. Elektroliz enerjisi bu basit hesapta modellenmez.</small></div>
-     <p class="unit-note">Kişi / Dünya günü: 0,84 kg O₂ · 3,52 kg su · 3035 kcal. Elektroliz: 1 kg O₂ için 1,125 kg su. <a href="https://ntrs.nasa.gov/citations/20150019662">NASA BVAD referansı</a></p>
+     <p class="muted">İhan’s three-person life support calculator. An independent planning example; it does not change colony supplies. Duration is in Earth days.</p>
+     <label>Duration <output id="eclss-days-value"></output><input id="eclss-days" type="range" min="1" max="30" value="10"></label>
+     <label>Water recovery <output id="eclss-recovery-value"></output><input id="eclss-recovery" type="range" min="0" max="98" value="85"></label>
+     <label class="check"><input id="eclss-electrolysis" type="checkbox" checked> Generate oxygen by water electrolysis</label>
+     <dl class="eclss-results"><dt>Required water</dt><dd id="eclss-water"></dd><dt>Recovered water</dt><dd id="eclss-savedWater"></dd><dt>Reserve oxygen</dt><dd id="eclss-oxygen"></dd><dt>Food energy</dt><dd id="eclss-foodKcal"></dd></dl>
+     <div class="group"><h3>Solar farm · 420 panels</h3><label>Example generation conditions <select id="eclss-weather"><option value="1">Clear · 100%</option><option value="0.5">Dusty · 50%</option><option value="0.1">Storm · 10%</option></select></label><p id="eclss-solar"></p><small>420 kWh/sol generation and 413 kWh/sol consumption are İhan’s example design assumptions. They are independent of game energy units. This simple calculation does not model electrolysis energy.</small></div>
+     <p class="unit-note">Per person / Earth day: 0.84 kg O₂ · 3.52 kg water · 3035 kcal. Electrolysis: 1.125 kg water per 1 kg O₂. <a href="https://ntrs.nasa.gov/citations/20150019662">NASA BVAD reference</a></p>
     </div>
    </section>
    <section id="view-drawer" class="colony-drawer" aria-labelledby="view-toggle" hidden>
-    <header class="drawer-heading"><h2>Görünüm ve kontroller</h2><button type="button" data-close-drawer aria-label="Görünümü kapat">×</button></header>
+    <header class="drawer-heading"><h2>View and controls</h2><button type="button" data-close-drawer aria-label="Close view">×</button></header>
     <div class="drawer-content">
-     <div class="mode-row"><button id="view-mode" class="primary" type="button">Astronotun gözünden gez</button><label>Astronot <select id="player" aria-label="Bakış açısı için astronot"></select></label></div>
-     <div class="buttons" aria-label="Düz Ova kameraları"><button type="button" data-ova-view="panorama">Ova panoraması</button><button type="button" data-ova-view="base">Kubbe üssü</button><button type="button" data-ova-view="solar">Güneş tarlası</button><button type="button" data-ova-view="pad">Kurulum alanı</button><button type="button" data-ova-view="controlRoom">Ana oda</button><button type="button" data-ova-view="bedroom">Yatak odası</button><button type="button" data-ova-view="laboratory">Laboratuvar</button><button type="button" data-ova-view="sanitary">Tuvalet</button></div>
-     <p class="muted">Merkez kubbenin önündeki hava kilidine yaklaş ve E’ye bas. İçeride yan tünellerden diğer kubbelere geç; çıkmak için merkez kubbenin kapısına dön.</p>
-     <p id="view-help">Modülü seç ve zeminde veya çatıda istediğin noktaya tıkla · Sürükleyerek döndür</p>
-     <p class="muted">Sahneye tıkla: fareyi yakala · WASD: yürü · Oklar / fare: bak · E: etkileşim · R: yaşam modülünün çatısına eriş / geri dön · Esc: paneli kapat veya üs planına dön.</p>
-     <p class="muted">Alt / Q / Tab: KERK tableti · Esc: ayarlar · L: kafa lambası · [ / ]: yüzey zaman hızı. Kaynak hesabı için “Bir sol ilerlet” kullanılır.</p>
-     <details class="file-row"><summary>Ekip karakteri yükle</summary><label>Seçili astronot için GLB <input id="character-file" type="file" accept=".glb,model/gltf-binary"></label><small id="character-status" role="status">Varsayılan astronotlar kullanımda.</small></details>
-     <p><small id="nasa-status" role="status">NASA modelleri yükleniyor…</small></p><p><button id="rover" type="button">NASA Perseverance modelini göster</button></p><small id="rover-status" role="status"></small>
-     <footer class="group"><h3>Veri ve model kaynakları</h3><p>Düz Ova üssü ve düz arazi: İhan · Prosedürel konsept, ölçülmüş Jezero arazisi değildir.</p><a href="https://science.nasa.gov/3d-resources/astronaut/">Astronot · NASA</a> · <a href="https://science.nasa.gov/3d-resources/mars-2020-perseverance-rover/">Perseverance · NASA/JPL</a> · <a href="https://www.nasa.gov/science-research/nasa-plant-researchers-explore-question-of-deep-space-food-crops/">NASA bitki araştırması</a><p>NASA Space Apps 2026 · Sivas</p></footer>
+     <div class="mode-row"><button id="view-mode" class="primary" type="button">Explore in first person</button><label>Astronaut <select id="player" aria-label="Astronaut viewpoint"></select></label></div>
+     <div class="buttons" aria-label="Flat Plains cameras"><button type="button" data-ova-view="panorama">Plains panorama</button><button type="button" data-ova-view="base">Dome base</button><button type="button" data-ova-view="solar">Solar farm</button><button type="button" data-ova-view="pad">Construction area</button><button type="button" data-ova-view="controlRoom">Main room</button><button type="button" data-ova-view="bedroom">Bedroom</button><button type="button" data-ova-view="laboratory">Laboratory</button><button type="button" data-ova-view="sanitary">Bathroom</button></div>
+     <p class="muted">Approach the airlock in front of the central dome and press E. Inside, use the side tunnels to reach the other domes. Return to the central dome entrance to exit.</p>
+     <p id="view-help">Select a module and click a spot on the ground or roof · Drag to rotate</p>
+     <p class="muted">Click the scene to focus · WASD: move · Arrows / mouse: look · E: interact · R: access habitat roof / return · Esc: close panel or return to base view.</p>
+     <p class="muted">Q / Tab: KERK tablet · Esc: settings · L: headlamp · [ / ]: surface time speed. Use “Advance one sol” for the resource calculation.</p>
+     <details class="file-row"><summary>Load crew character</summary><label>GLB for selected astronaut <input id="character-file" type="file" accept=".glb,model/gltf-binary"></label><small id="character-status" role="status">Default astronauts in use.</small></details>
+     <p><small id="nasa-status" role="status">Loading NASA models…</small></p><p><button id="rover" type="button">Show NASA Perseverance model</button></p><small id="rover-status" role="status"></small>
+     <footer class="group"><h3>Data and model sources</h3><p>Flat Plains base and terrain: İhan · Procedural concept, not surveyed Jezero terrain.</p><a href="https://science.nasa.gov/3d-resources/astronaut/">Astronaut · NASA</a> · <a href="https://science.nasa.gov/3d-resources/mars-2020-perseverance-rover/">Perseverance · NASA/JPL</a> · <a href="https://www.nasa.gov/science-research/nasa-plant-researchers-explore-question-of-deep-space-food-crops/">NASA plant research</a><p>NASA Space Apps 2026 · Sivas</p></footer>
     </div>
    </section>
   </div>
-  <aside class="surface-message" aria-label="Sahne bildirimi"><span>YÜZEY OPERASYONU</span><p id="message" role="status">Envanterden modül seç ve uygun yüzeye yerleştir.</p><small>Sahneye tıkla · WASD yürü · E etkileşim · Esc yönetim</small></aside>
+  <aside class="surface-message" aria-label="Scene notification"><span>SURFACE OPERATIONS</span><p id="message" role="status">Select an inventory module and place it on a suitable surface.</p><small>Click scene · WASD move · E interact · Esc management</small></aside>
  </div>
 </main>
-<script type="module" src="/src/colony/main.js"></script>
+<script type="module" src="/src/game-entry.js"></script>
 </body>
 </html>

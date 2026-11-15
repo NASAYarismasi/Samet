@@ -113,5 +113,5 @@ export function createCommsStation(scene, heightAt) {
   }
   update(0)
   return { group, update, get telemetry() { return { ...COMMS_PAD, beaconOn: on, beaconSeconds: seconds,
-    target: 'Dünya ufuk üstündeyken Dünya; diğer zamanlarda temsili röle', direction: target.toArray() } } }
+    target: "Track Earth above the horizon; otherwise use a representative relay", direction: target.toArray() } } }
 }

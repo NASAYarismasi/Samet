@@ -59,7 +59,7 @@ it('does not consume fuel during a zero-throttle burn and aborts without proceed
   m.setThrottle(1); expect(m.state.warp).toBe(10); expect(m.getTelemetry().engineFiring).toBe(true);
   m.abort(); const t = m.state.time;
   m.step(1); expect(m.state.time).toBe(t); expect(m.state.phase).toBe('FAILED');
-  expect(m.state.failureReason).toMatch(/iptal/);
+  expect(m.state.failureReason).toMatch(/aborted/);
 });
 it('fails on exhausted life support without negative supplies and exposes detached telemetry', () => {
   const m = createMission({ supplyDuration: .000001 * DAY }); m.launch(); m.step(1);

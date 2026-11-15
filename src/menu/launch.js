@@ -1,3 +1,4 @@
+import {toggleFullscreen} from '../ui/fullscreen.js';
 import { createMarsBackdrop } from './mars-backdrop.js';
 import { createGameAudio } from './game-audio.js';
 import { clearLandingPayload } from '../colony/handoff.js';
@@ -13,15 +14,15 @@ function mountMenu(){
   let {selected,muted,...settings}=prefs;
   let screen='menu',introTimer,backdrop,saved=true;
   const audio=createGameAudio();audio.update(settings);audio.mute(muted);
-  function persist(){try{localStorage.setItem('mars-menu-settings',JSON.stringify({...settings,muted}));localStorage.setItem('mars-appearance',selected);saved=true}catch{saved=false}$('#save-state').textContent=saved?'Ayarlar kaydedildi.':'Tarayıcı kaydı kullanılamıyor; ayarlar bu oturumda geçerli.';}
+  function persist(){try{localStorage.setItem('mars-menu-settings',JSON.stringify({...settings,muted}));localStorage.setItem('mars-appearance',selected);saved=true}catch{saved=false}$('#save-state').textContent=saved?"Settings saved.":"Browser storage is unavailable; settings apply to this session only.";}
   function show(next,focus=true){clearTimeout(introTimer);screen=next;document.body.dataset.screen=next;document.querySelectorAll('main>.screen').forEach(el=>el.hidden=el.id!==next);backdrop?.setIntro(next==='intro');window.scrollTo(0,0);audio.setActive(next!=='ended');if(focus){const el=$('#'+next).querySelector('h1,h2');if(el){el.setAttribute('tabindex','-1');el.focus({preventScroll:true})}}}
   function playIntro(){show('intro',false);introTimer=setTimeout(()=>show('menu'),5000)}
-  function select(id){selected=id;const index=Number(id.at(-1));document.querySelectorAll('.character').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.astronaut===id)));$('#selection-summary').textContent=`Astronot 0${index} seçildi.`;persist();}
-  try{backdrop=createMarsBackdrop($('#cosmos'),failed=>{$('#background-error').hidden=!failed});backdrop.setResolution(settings.resolution)}catch{$('#background-error').hidden=false;$('#background-error').firstChild.textContent='3D Mars görüntüsü bu cihazda başlatılamadı. ';}
+  function select(id){selected=id;const index=Number(id.at(-1));document.querySelectorAll('.character').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.astronaut===id)));$('#selection-summary').textContent=`Astronaut 0${index} selected.`;persist();}
+  try{backdrop=createMarsBackdrop($('#cosmos'),failed=>{$('#background-error').hidden=!failed});backdrop.setResolution(settings.resolution)}catch{$('#background-error').hidden=false;$('#background-error').firstChild.textContent="The 3D Mars background could not start on this device. ";}
   $('#retry-background').onclick=()=>{if(backdrop)backdrop.retry();else location.reload()};
   for(const key of ['master','ambient','effects']){const input=$('#'+key+'-volume');input.value=settings[key];$('#'+key+'-output').value=settings[key]+'%';input.addEventListener('input',()=>{settings[key]=Number(input.value);$('#'+key+'-output').value=settings[key]+'%';audio.update(settings);persist()});}
   $('#resolution').value=settings.resolution;$('#resolution').onchange=e=>{settings.resolution=e.target.value;backdrop?.setResolution(settings.resolution);persist()};
-  async function unlock(){try{await audio.unlock()}catch{$('#app-status').textContent='Bu tarayıcıda ses başlatılamadı.'}}
+  async function unlock(){try{await audio.unlock()}catch{$('#app-status').textContent="Audio could not start in this browser."}}
   document.addEventListener('pointerdown',unlock,{once:true});document.addEventListener('keydown',unlock,{once:true});
   document.addEventListener('click',e=>{if(e.target.closest('button'))audio.tick();const back=e.target.closest('[data-back]');if(back)show(back.dataset.back)});
   $('#skip-intro').onclick=()=>show('menu');$('#replay-intro').onclick=playIntro;
@@ -33,13 +34,13 @@ function mountMenu(){
     audio.mute(muted);
     const toggle=$('#sound-toggle');
     toggle.setAttribute('aria-pressed',String(muted));
-    toggle.setAttribute('aria-label',muted?'Sesi aç':'Sesi kapat');
-    toggle.innerHTML=muted?'SES KAPALI <span>◖×</span>':'SES AÇIK <span>◖))</span>';
+    toggle.setAttribute('aria-label',muted?"Unmute":"Mute");
+    toggle.innerHTML=muted?"SOUND OFF <span>◖×</span>":"SOUND ON <span>◖))</span>";
   }
   $('#sound-toggle').onclick=()=>{muted=!muted;updateMute();persist();};
   $('#test-sound').onclick=async()=>{await unlock();audio.tick(true)};
-  $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch{$('#save-state').textContent='Tarayıcı tam ekrana geçişe izin vermedi.'}};
-  document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Tam ekrandan çık ↙':'Tam ekran ↗'});
+  $('#fullscreen').onclick=toggleFullscreen;
+  document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?"Exit fullscreen ↙":"Fullscreen ↗"});
   $('#exit-open').onclick=()=>$('#exit-dialog').showModal();$('#exit-cancel').onclick=()=>$('#exit-dialog').close();$('#exit-confirm').onclick=()=>{$('#exit-dialog').close();show('ended');};$('#return-game').onclick=()=>show('menu');
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#exit-dialog').open){if(screen==='intro')show('menu');else if(['astronauts','settings','chapters'].includes(screen))show('menu')}});
   document.addEventListener('visibilitychange',()=>audio.setActive(!document.hidden&&screen!=='ended'));

@@ -1,3 +1,4 @@
+import {createEarthMessages} from './earth-messages.mjs';
 import {createSoilAnalysis,startSoilAnalysis,stepSoilAnalysis,SOIL_SCAN_SECONDS} from '../../sim/soilAnalysis.js';
 /** Original source: ?han, NASAYarismasi/-lhan a7d5ce6. Host integration: IHAN-SRC. */
 // Source visual dimensions are GAME ASSUMPTIONS, not surveyed Mars terrain.
@@ -531,7 +532,7 @@ export function createOvaWorld(scene){
     block(parent,w+.10,h+.10,.10,rack,x,y,z);const screen=mesh(parent,new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:texture}),x,y,z+.057);
     return rows=>{paint(rows);texture.needsUpdate=true;};
   }
-  const lifeDisplays=[];let soilAnalysis=createSoilAnalysis(),labDisplay,lastLabFrame=-1;
+  const earthMessages=createEarthMessages(); const lifeDisplays=[];let soilAnalysis=createSoilAnalysis(),labDisplay,lastLabFrame=-1;
   const points = []
   const colors = []
   const panelColor = new T.Color()
@@ -651,13 +652,13 @@ export function createOvaWorld(scene){
       }
     }else if(index===1){
       block(group,2.5,.85,.65,interior,0,.44,-2.25);
-      lifeDisplays.push(display(group,-.72,1.58,-2.0,'ATMOSFER',['O2 / CO2','ECLSS'],1.2,.7));
-      lifeDisplays.push(display(group,.72,1.58,-2.0,'SU / ENERJI',['SU GERI KAZANIM','ELEKTRIK'],1.2,.7));
+      lifeDisplays.push(display(group,-.72,1.58,-2.0,"EARTH / INBOX",earthMessages.rows(0),1.2,.7));
+      lifeDisplays.push(display(group,.72,1.58,-2.0,"EARTH / OUTBOX",earthMessages.rows(1),1.2,.7));
       for(let i=0;i<6;i++)block(group,.13,.025,.10,i%2?light:steel,-.8+i*.32,.89,-1.98);
     }else{
       block(group,2.7,.12,.72,interior,0,.95,-2.0);
       for(const xx of [-1.1,1.1])block(group,.08,.9,.55,rack,xx,.45,-2.0);
-      labDisplay=display(group,-.65,1.58,-2.15,'TOPRAK ANALIZI',['REG-01 / ORNEK NUMUNE','E: ANALIZI BASLAT','TEMSILI OYUN VERISI'],1.55,.86);
+      labDisplay=display(group,-.65,1.58,-2.15,"SOIL ANALYSIS",["REG-01 / SAMPLE","E: START ANALYSIS","ILLUSTRATIVE GAME DATA"],1.55,.86);
       block(group,.62,.38,.52,rack,.75,1.2,-2.0);mesh(group,new T.CylinderGeometry(.19,.19,.04,24),steel,.75,1.42,-1.95);mesh(group,new T.DodecahedronGeometry(.12,0),new T.MeshStandardMaterial({color:0x805b43,roughness:1}),.75,1.53,-1.95);
       mesh(group,new T.CylinderGeometry(.08,.10,.30,20),glazing,.6,1.54,-1.95);
       for(let i=0;i<6;i++)mesh(group,new T.CylinderGeometry(.025,.025,.17,12),glazing,-.1+i*.14,1.1,-1.78);
@@ -795,7 +796,7 @@ export function createOvaWorld(scene){
   for(const face of [-1,1])block(privacyDoor,.05,.22,.065,rack,1.33,1.06,face*.06);
   for(const xx of [-.79,.79])block(sanitary,.06,2.25,.10,interior,xx,1.13,-3.07);
   let privacyOpen=false;
-  display(sanitary,.65,1.65,-6.81,'HIJYEN',['VAKUM TUVALET','ATIK SU HATTI'],.7,.4);
+  display(sanitary,.65,1.65,-6.81,"HYGIENE",["VACUUM TOILET","WASTEWATER LINE"],.7,.4);
   // Buried wastewater route: render only the two exposed risers, not hidden pipework.
   function drainRiser(points){const curve=new T.CurvePath();for(let i=1;i<points.length;i++)curve.add(new T.LineCurve3(new T.Vector3(...points[i-1]),new T.Vector3(...points[i])));mesh(colonyGroup,new T.TubeGeometry(curve,12,.055,8,false),rack,0,0,0);}
   drainRiser([[9.65,floorY+.45,-6.25],[9.65,floorY+.15,-6.25],[9.65,getTerrainHeight(9.65,-6.25)-.2,-6.25]]);
@@ -818,16 +819,16 @@ export function createOvaWorld(scene){
     labPrompt(x,z,camera){
       if(Math.hypot(x+9,z+1.8)>2.25||z< -1.8)return '';
       if(camera){const d=camera.getWorldDirection(new T.Vector3());const t=(-1.9-z)/d.z;if(t<=0||t>2.8||Math.abs(x+d.x*t+9)>1.45)return '';}
-      return soilAnalysis.phase==='scanning'?'Toprak analizi sürüyor…':soilAnalysis.phase==='complete'?'E · Numuneyi yeniden analiz et':'E · Toprak numunesini analiz et';
+      return soilAnalysis.phase==='scanning'?"Soil analysis in progress…":soilAnalysis.phase==='complete'?"E · Analyze sample again":"E · Analyze soil sample";
     },
-    startLab(x,z,camera){if(!this.labPrompt(x,z,camera))return false;soilAnalysis=startSoilAnalysis(soilAnalysis);lastLabFrame=-1;globalThis.dispatchEvent?.(new CustomEvent('colony:notification',{detail:{message:'Toprak analizi başladı · REG-01'}}));return true;},
-    updateLab(dt){const previous=soilAnalysis.phase;soilAnalysis=stepSoilAnalysis(soilAnalysis,dt);if(previous==='scanning'&&soilAnalysis.phase==='complete')globalThis.dispatchEvent?.(new CustomEvent('colony:notification',{detail:{message:'Toprak analizi tamamlandı · Sonuçlar laboratuvar ekranında'}}));const frame=Math.floor(soilAnalysis.elapsed*5);if(frame===lastLabFrame)return;lastLabFrame=frame;
-      if(soilAnalysis.phase==='scanning')labDisplay?.(['REG-01 / ISLENIYOR',`TARAMA %${Math.floor(soilAnalysis.elapsed/SOIL_SCAN_SECONDS*100)}`,'LUTFEN BEKLEYIN']);
-      if(soilAnalysis.phase==='complete')labDisplay?.(['BUZ %2.4 / DEMIR OKSIT %14.2','PERKLORAT: TESPIT / ARITMA GEREK','TEMSILI OYUN VERISI']);
+    startLab(x,z,camera){if(!this.labPrompt(x,z,camera))return false;soilAnalysis=startSoilAnalysis(soilAnalysis);lastLabFrame=-1;globalThis.dispatchEvent?.(new CustomEvent('colony:notification',{detail:{message:"Soil analysis started · REG-01"}}));return true;},
+    updateLab(dt){const previous=soilAnalysis.phase;soilAnalysis=stepSoilAnalysis(soilAnalysis,dt);if(previous==='scanning'&&soilAnalysis.phase==='complete')globalThis.dispatchEvent?.(new CustomEvent('colony:notification',{detail:{message:"Soil analysis complete · Results on the laboratory screen"}}));const frame=Math.floor(soilAnalysis.elapsed*5);if(frame===lastLabFrame)return;lastLabFrame=frame;
+      if(soilAnalysis.phase==='scanning')labDisplay?.(["REG-01 / PROCESSING",`SCAN %${Math.floor(soilAnalysis.elapsed/SOIL_SCAN_SECONDS*100)}`,"PLEASE WAIT"]);
+      if(soilAnalysis.phase==='complete')labDisplay?.(["ICE 2.4% / IRON OXIDE 14.2%","PERCHLORATE DETECTED / TREATMENT REQUIRED","ILLUSTRATIVE GAME DATA"]);
     },
     analyzeSoil(){if(soilAnalysis.phase!=='scanning'){soilAnalysis=startSoilAnalysis(soilAnalysis);lastLabFrame=-1;}},
     get soilAnalysis(){return soilAnalysis;},
-    privacyPrompt(x,z){return Math.abs(x-9)<1.05&&Math.abs(z+3.07)<1.5?'E · Tuvalet kapısını '+(privacyOpen?'kapat':'aç'):'';},
+    privacyPrompt(x,z){return Math.abs(x-9)<1.05&&Math.abs(z+3.07)<1.5?"E · Bathroom door: "+(privacyOpen?"close":"open"):'';},
     togglePrivacy(x,z){if(!this.privacyPrompt(x,z))return false;privacyOpen=!privacyOpen;privacyDoor.rotation.y=privacyOpen?-Math.PI/2:0;return true;},
     privacyBlocked(x,z){if(z> -3.3&&z< -2.18&&Math.abs(x-9)>.62&&Math.abs(x-9)<1.16)return true;return !privacyOpen&&Math.abs(x-9)<1.0&&Math.abs(z+3.07)<.28;},
     setHabitatLights(on){
@@ -837,13 +838,24 @@ export function createOvaWorld(scene){
       ceilingDiffuser.color.setHex(on?0xffe9bd:0x817d6d);
     },
     get habitatLightsOn(){return habitatLightsOn;},
-    updateLifeDisplays(t){lifeDisplays[0]?.([`O2 ${t.oxygenKg.toFixed(2)} kg`,`CO2 temizlenen ${t.air.removedCO2Kg.toFixed(2)} kg`]);lifeDisplays[1]?.([`SU ${t.waterL.toFixed(1)} L`,`GUC ${t.powerKW.toFixed(2)} kW`]);},
-    isInsideFloor:insideZone,isHabitatBlocked:outsideObstacle,
+    updateLifeDisplays(){lifeDisplays.forEach((paint,index)=>paint(earthMessages.rows(index)));},
+    messageTarget(x,z,camera){
+      if(!camera)return -1;
+      const d=camera.getWorldDirection(new T.Vector3());
+      if(Math.abs(d.z)<.001)return -1;
+      const distance=(-1.943-z)/d.z;
+      if(distance<=0||distance>2.8)return -1;
+      const hitX=x+d.x*distance,hitY=camera.position.y+d.y*distance-floorY;
+      if(Math.abs(hitY-1.58)>.35)return -1;
+      return [-.72,.72].findIndex(center=>Math.abs(hitX-center)<.6);
+    },
+    messagePrompt(x,z,camera){const index=this.messageTarget(x,z,camera);return index<0?'':index===0?"E · Messages from Earth":"E · Write a message to Earth";},
+    openMessages(x,z,camera){const index=this.messageTarget(x,z,camera);if(index<0)return false;earthMessages.open(index,()=>this.updateLifeDisplays());return true;},    isInsideFloor:insideZone,isHabitatBlocked:outsideObstacle,
     blocksFootprint(x,z,hx,hz){return centers.some(cx=>Math.abs(x-cx)<radius+hx && Math.abs(z)<radius+hz)
       || baseObstacles.some(b=>x+hx>b.min.x && x-hx<b.max.x && z+hz>b.min.z && z-hz<b.max.z)},
     views:{bedroom:{position:[9,floorY+1.65,-2.25],target:[9,floorY+.85,1.2]},laboratory:{position:[-9,floorY+1.65,2.1],target:[-9,floorY+1.25,-2]},controlRoom:{position:[0,floorY+1.65,2.15],target:[0,floorY+1.5,-2]},sanitary:{position:[9,floorY+1.65,-3.6],target:[9,floorY+.9,-6]},panorama:{position:[-2.2,getTerrainHeight(-2.2,28)+2,28],target:[0,floorY+2.35,1]},
       base:{position:[24,16,30],target:[4,1,0]},solar:{position:[solar.x0+30,solar.level+36,solar.z0+46],target:[solar.x0,solar.level,solar.z0]},
       pad:{position:[29,35,35],target:[0,0,18]}},
-    dispose(){screenTextures.forEach(t=>t.dispose());surfaceDetail.dispose();regolithPhoto.dispose()}
+    dispose(){earthMessages.dispose();screenTextures.forEach(t=>t.dispose());surfaceDetail.dispose();regolithPhoto.dispose()}
   };
 }

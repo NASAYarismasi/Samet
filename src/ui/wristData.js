@@ -14,14 +14,14 @@ const pad = value => String(value).padStart(2, '0');
 export function wristMET(seconds) {
   if (!Number.isFinite(seconds)) return '—';
   const t = Math.floor(Math.abs(seconds) + 1e-6), days = Math.floor(t / DAY);
-  return `${seconds < 0 ? 'T−' : 'T+'} ${days ? `${days}g ` : ''}${pad(Math.floor(t / 3600) % 24)}:${pad(Math.floor(t / 60) % 60)}:${pad(t % 60)}`;
+  return `${seconds < 0 ? 'T−' : 'T+'} ${days ? `${days}d ` : ''}${pad(Math.floor(t / 3600) % 24)}:${pad(Math.floor(t / 60) % 60)}:${pad(t % 60)}`;
 }
 
 function crewData(crew, colony) {
   return (Array.isArray(crew) ? crew : []).map((person, index) => ({
-    id: person.id, name: person.name ?? `Astronot ${index + 1}`,
+    id: person.id, name: person.name ?? `Astronaut ${index + 1}`,
     health: finite(person.health), alive: person.health > 0, role: person.role ?? null,
-    roleLabel: roles[person.role] ?? (colony ? 'Görev atanmadı' : 'Uçuş mürettebatı'),
+    roleLabel: roles[person.role] ?? (colony ? "Unassigned" : "Flight crew"),
   }));
 }
 
@@ -45,14 +45,14 @@ export function flightWristData(telemetry = {}) {
   }
   const missionTime = t.phase === 'PRELAUNCH' ? finite(t.countdown?.time) ?? finite(t.missionTime) : finite(t.missionTime);
   return {
-    mode: 'flight', phase: t.phase ?? null, phaseLabel: PHASE_LABELS[t.phase] ?? 'Telemetri bekleniyor',
+    mode: 'flight', phase: t.phase ?? null, phaseLabel: PHASE_LABELS[t.phase] ?? "Awaiting telemetry",
     missionTime, met: wristMET(missionTime), crew, livingCrew: crew.filter(person => person.alive).length,
     resources, nextEvent: nextEvent(eventTelemetry),
     power: { enabled: typeof t.cabinPower === 'boolean' ? t.cabinPower : null },
     navigation: {
-      distance, distanceLabel: cruise ? 'Güneş’e uzaklık' : 'İrtifa', distanceUnit: cruise ? 'AU' : 'km',
+      distance, distanceLabel: cruise ? "Distance to Sun" : "Altitude", distanceUnit: cruise ? 'AU' : 'km',
       velocity: speed === null ? null : speed / 1000, velocityUnit: 'km/s',
-      velocityLabel: cruise ? 'Güneş’e göre hız' : finite(t.surfaceVelocity) !== null ? 'Yüzeye göre hız' : 'Yörünge hızı',
+      velocityLabel: cruise ? "Sun-relative speed" : finite(t.surfaceVelocity) !== null ? "Surface-relative speed" : "Orbital speed",
     },
   };
 }
@@ -84,10 +84,10 @@ export function colonyWristData(detail = {}) {
   const storm = typeof stormValue === 'boolean' ? stormValue : typeof stormValue?.active === 'boolean' ? stormValue.active : null;
   const task = typeof d.activeTask === 'string' ? d.activeTask : d.activeTask?.label ?? d.activeTask?.title ?? d.activeTask?.name;
   return {
-    mode: 'colony', phaseLabel: 'JEZERO / YÜZEY OPERASYONLARI', sol: finite(state.sol), lmst: localTime(d.lmst),
+    mode: 'colony', phaseLabel: "JEZERO / SURFACE OPERATIONS", sol: finite(state.sol), lmst: localTime(d.lmst),
     lifeSupport: d.lifeSupport ?? null, // IHAN-SRC: physical reserves are separate from person-sol stocks
-    crew, livingCrew, resources, storm, stormLabel: storm === null ? 'Hava verisi bekleniyor' : storm ? 'Toz fırtınası' : 'Açık gökyüzü',
-    activeTask: task || 'Görev seçilmedi', nextEvent: task || 'Koloni operasyonları',
+    crew, livingCrew, resources, storm, stormLabel: storm === null ? "Awaiting weather data" : storm ? "Dust storm" : "Clear sky",
+    activeTask: task || "No mission selected", nextEvent: task || "Colony operations",
     headlamp: typeof d.headlamp === 'boolean' ? d.headlamp : null, sunElevationDeg: finite(d.sunElevationDeg),
     // Use colony accounting directly. Energy is an educational game unit, never kWh.
     energy: { startup: finite(state.startupEnergy), battery: finite(state.battery),

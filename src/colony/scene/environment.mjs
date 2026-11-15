@@ -178,9 +178,9 @@ export function createEnvironment(scene, camera, canvas) {
   document.head.append(style)
   const hud=document.createElement('div'); hud.id='surface-status'
   const readout=document.createElement('div'); readout.className='surface-readout'
-  const help=document.createElement('small'); help.textContent='[ / ] Zaman · L Lamba · Esc Ayarlar'
+  const help=document.createElement('small'); help.textContent="[ / ] Time · L Light · Esc Settings"
   const button=document.createElement('button'); button.id='surface-audio'; button.type='button'
-  button.textContent='Giysi sesi: '+(audio.enabled?'AÇIK':'KAPALI'); button.setAttribute('aria-pressed',String(audio.enabled))
+  button.textContent="Suit audio: "+(audio.enabled?"ON":"OFF"); button.setAttribute('aria-pressed',String(audio.enabled))
   hud.append(readout,help,button)
   const host=document.getElementById('scene-hud')
   ;(host || document.body).append(hud)
@@ -193,7 +193,7 @@ export function createEnvironment(scene, camera, canvas) {
   }
   const observer=new ResizeObserver(alignHUD); observer.observe(canvas)
   window.addEventListener('scroll',alignHUD,{signal:abort.signal,passive:true}); window.addEventListener('resize',alignHUD,{signal:abort.signal})
-  function toggleAudio() { const value=audio.toggle(); button.textContent='Giysi sesi: '+(value?'AÇIK':'KAPALI'); button.setAttribute('aria-pressed',String(value)) }
+  function toggleAudio() { const value=audio.toggle(); button.textContent="Suit audio: "+(value?"ON":"OFF"); button.setAttribute('aria-pressed',String(value)) }
   button.addEventListener('click',toggleAudio,{signal:abort.signal})
   document.addEventListener('keydown',event=>{
     if(paused || event.repeat || event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target?.tagName) || event.target?.isContentEditable) return
@@ -264,8 +264,8 @@ export function createEnvironment(scene, camera, canvas) {
     const temperature=Math.round(-80+60*Math.max(0,Math.sin(solar.elevation))**.55)
     if(forceHUD || realTime-lastHUD>=.25) {
       lastHUD=realTime
-      readout.textContent=`LMST ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} · ×${warps[warpIndex]} · Güneş ${elevation.toFixed(1)}° · ${temperature} °C (tahmini)`
-      help.textContent=`Kafa lambası: ${lampOn?'AÇIK':'KAPALI'}${manualLamp===null?' · OTO':''} · [ / ] Zaman · L Lamba · M Ses`
+      readout.textContent=`LMST ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} · ×${warps[warpIndex]} · Sun ${elevation.toFixed(1)}° · ${temperature} °C (estimated)`
+      help.textContent=`Headlamp: ${lampOn?"ON":"OFF"}${manualLamp===null?" · AUTO":''} · [ / ] Time · L Light · M Audio`
     }
     updateLightingPose()
   }

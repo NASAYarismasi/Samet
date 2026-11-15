@@ -1,9 +1,9 @@
 export const materialNames = {
-  mineral: "Maden", ice: "Buz", water: "Arıtılmış su", waste: "Ayrılmış idrar",
-  nitrate: "Geri kazanılmış azot", nutrients: "Besin çözeltisi", mineralMix: "Mineral karışımı",
-  tubers: "Tohumluk yumru", seeds: "Fasulye tohumu", saplings: "Aşılı elma fidanı",
-  potato: "Patates", bean: "Fasulye", apple: "Elma",
-  credits: "Kredi",
+  mineral: "Ore", ice: "Ice", water: "Purified water", waste: "Separated urine",
+  nitrate: "Recovered nitrogen", nutrients: "Nutrient solution", mineralMix: "Mineral mix",
+  tubers: "Seed tuber", seeds: "Bean seeds", saplings: "Grafted apple sapling",
+  potato: "Potatoes", bean: "Beans", apple: "Apple",
+  credits: "Credits",
 }
 
 export const nodes = [
@@ -22,19 +22,19 @@ export const crops = {
 }
 
 export const recipes = [
-  { id: "water", name: "Buzu arıt", skill: "mining", level: 1, cost: { ice: 1 }, reward: { water: 3 } },
-  { id: "nitrate", name: "İdrarı arıt, azotu geri kazan", skill: "farming", level: 1,
+  { id: "water", name: "Purify ice", skill: "mining", level: 1, cost: { ice: 1 }, reward: { water: 3 } },
+  { id: "nitrate", name: "Treat urine, recover nitrogen", skill: "farming", level: 1,
     cost: { waste: 2 }, reward: { nitrate: 2 } },
-  { id: "nutrients", name: "Besin çözeltisi hazırla", skill: "farming", level: 1,
+  { id: "nutrients", name: "Prepare nutrient solution", skill: "farming", level: 1,
     cost: { nitrate: 1, water: 1, mineralMix: 1 }, reward: { nutrients: 2 } },
-  { id: "potatoPod", name: "Patates kabini üret", skill: "farming", level: 1,
+  { id: "potatoPod", name: "Build potato pod", skill: "farming", level: 1,
     cost: { mineral: 2, credits: 4, nutrients: 1, tubers: 1 } },
-  { id: "beanPod", name: "Fasulye kabini üret", skill: "farming", level: 2,
+  { id: "beanPod", name: "Build bean pod", skill: "farming", level: 2,
     cost: { mineral: 2, credits: 9, nutrients: 1, seeds: 1 } },
-  { id: "treePod", name: "Bodur elma kabini üret", skill: "farming", level: 3,
+  { id: "treePod", name: "Build dwarf apple pod", skill: "farming", level: 3,
     cost: { mineral: 3, credits: 16, nutrients: 2, saplings: 1 } },
-  { id: "battery", name: "Ek batarya üret", skill: "mining", level: 1, cost: { mineral: 4, credits: 12 } },
-  { id: "solarPanel", name: "Ek güneş paneli üret", skill: "mining", level: 2, cost: { mineral: 4, credits: 16 } },
+  { id: "battery", name: "Build additional battery", skill: "mining", level: 1, cost: { mineral: 4, credits: 12 } },
+  { id: "solarPanel", name: "Build additional solar panel", skill: "mining", level: 2, cost: { mineral: 4, credits: 16 } },
 ]
 
 export const levelOf = xp => xp >= 14 ? 3 : xp >= 5 ? 2 : 1
@@ -50,15 +50,15 @@ export function startWorkshop() {
 
 export function recipeError(workshop, recipe) {
   if (levelOf(workshop.xp[recipe.skill]) < recipe.level) {
-    return (recipe.skill === "mining" ? "Madencilik" : "Tarım") + " seviye " + recipe.level + " gerekli."
+    return (recipe.skill === "mining" ? "Mining" : "Farming") + " level " + recipe.level + " required."
   }
   const missing = Object.entries(recipe.cost).filter(([id, amount]) => workshop.stock[id] < amount)
-  return missing.length ? "Eksik: " + missing.map(([id, amount]) => (amount - workshop.stock[id]) + " " + materialNames[id]).join(", ") : ""
+  return missing.length ? "Missing: " + missing.map(([id, amount]) => (amount - workshop.stock[id]) + " " + materialNames[id]).join(", ") : ""
 }
 
 export function craft(workshop, id) {
   const recipe = recipes.find(recipe => recipe.id === id)
-  if (!recipe) throw new RangeError("Tarif bulunamadı.")
+  if (!recipe) throw new RangeError("Recipe not found.")
   const error = recipeError(workshop, recipe)
   if (error) throw new RangeError(error)
   const stock = { ...workshop.stock }
@@ -69,7 +69,7 @@ export function craft(workshop, id) {
 
 export function collect(workshop, id, sol) {
   const node = nodes.find(node => node.id === id)
-  if (!node || workshop.collected[id] === sol) throw new RangeError("Bu yatak sonraki sol tekrar taranabilir.")
+  if (!node || workshop.collected[id] === sol) throw new RangeError("This deposit can be surveyed again next sol.")
   return {
     ...workshop,
     collected: { ...workshop.collected, [id]: sol },
@@ -95,7 +95,7 @@ export function grow(workshop, colony) {
 
 export function harvest(workshop, unit) {
   const crop = crops[unit.type]
-  if (!crop || (workshop.growing[unit.id] ?? 0) < crop.sols) throw new RangeError("Ürün henüz olgunlaşmadı.")
+  if (!crop || (workshop.growing[unit.id] ?? 0) < crop.sols) throw new RangeError("Crop not yet mature.")
   return {
     ...workshop,
     growing: { ...workshop.growing, [unit.id]: null },
@@ -105,11 +105,11 @@ export function harvest(workshop, unit) {
 }
 
 export function replant(workshop, unit) {
-  if (workshop.growing[unit.id] !== null) throw new RangeError("Önce hasadı tamamla.")
+  if (workshop.growing[unit.id] !== null) throw new RangeError("Complete the harvest first.")
   const plant = { potatoPod: "tubers", beanPod: "seeds" }[unit.type]
   if (workshop.stock.nutrients < 1 || (plant && workshop.stock[plant] < 1)) {
-    throw new RangeError("Yeni dönem için 1 besin çözeltisi" +
-      (plant ? " ve 1 " + materialNames[plant].toLowerCase() + " hazırla." : " hazırla."))
+    throw new RangeError("For the next cycle, prepare 1 nutrient solution" +
+      (plant ? " and 1 " + materialNames[plant].toLowerCase() + " prepare." : " prepare."))
   }
   const stock = { ...workshop.stock, nutrients: workshop.stock.nutrients - 1 }
   if (plant) stock[plant] -= 1
@@ -119,6 +119,6 @@ export function replant(workshop, unit) {
 export function sell(workshop, id) {
   const crop = Object.values(crops).find(crop => crop.yield === id)
   const price = crop?.price ?? (id === "mineral" ? 2 : 0)
-  if (!price || !workshop.stock[id]) throw new RangeError("Teslim edilecek ürün yok.")
+  if (!price || !workshop.stock[id]) throw new RangeError("No produce to deliver.")
   return { ...workshop, stock: { ...workshop.stock, [id]: workshop.stock[id] - 1, credits: workshop.stock.credits + price } }
 }

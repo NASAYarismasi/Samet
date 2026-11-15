@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { landingSequence } from './landingSequence.js';
 import { vehicleConfiguration, transitOrbitOffset } from './vehiclePhases.js';
-export const CAMERA_NAMES=['Takip','Kabin / iniş penceresi','Yer takibi','Motor kamerası','Sinematik','Yörünge haritası'];
+export const CAMERA_NAMES=["Follow","Cabin / landing window","Ground tracking","Engine camera","Cinematic","Orbit map"];
 export function createCameras(canvas) {
   const camera=new THREE.PerspectiveCamera(45,1,.15,1e10);let selected=0,effective=0,lastEffective=-1,yaw=.52,elevation=.16,distance=235,zoom=1,initialized=false,cinematicTime=0;
   const desired=new THREE.Vector3(),target=new THREE.Vector3();let drag=false;

@@ -10,15 +10,15 @@ export function calculateEclss(days, recoveryPercent, electrolysis) {
 export function bindEclss(root = document) {
   const abort = new AbortController();
   const byId = id => root.getElementById(id);
-  const number = new Intl.NumberFormat('tr-TR',{maximumFractionDigits:1});
+  const number = new Intl.NumberFormat("en-US",{maximumFractionDigits:1});
   function update() {
     const days=Number(byId('eclss-days').value), recovery=Number(byId('eclss-recovery').value);
     const result=calculateEclss(days,recovery,byId('eclss-electrolysis').checked);
-    byId('eclss-days-value').textContent=days+' Dünya günü';
+    byId('eclss-days-value').textContent=days+" Earth days";
     byId('eclss-recovery-value').textContent='%'+recovery;
     for(const [key,value] of Object.entries(result)) byId('eclss-'+key).textContent=number.format(value)+(key==='foodKcal'?' kcal':' kg');
     const generation=420*Number(byId('eclss-weather').value);
-    byId('eclss-solar').textContent=number.format(generation)+' kWh/sol · Denge '+number.format(generation-413)+' kWh/sol';
+    byId('eclss-solar').textContent=number.format(generation)+" kWh/sol · Balance "+number.format(generation-413)+' kWh/sol';
   }
   for(const id of ['days','recovery','electrolysis','weather']) byId('eclss-'+id).addEventListener('input',update,{signal:abort.signal});
   update();

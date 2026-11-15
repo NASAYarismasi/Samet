@@ -116,14 +116,14 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
     const ctx=label.getContext("2d")
     ctx.fillStyle="#263033";ctx.fillRect(0,0,256,80)
     ctx.fillStyle="#ddf1ed";ctx.font="bold 30px monospace";ctx.fillText((i+1)+" / DC > AC",18,35)
-    ctx.font="23px monospace";ctx.fillText(i<2?"42 / AC BARA":"42 / AC BARA",25,66)
+    ctx.font="23px monospace";ctx.fillText(i<2?"42 / AC BUS":"42 / AC BUS",25,66)
     const texture=new T.CanvasTexture(label)
     texture.colorSpace=T.SRGBColorSpace
     part(rack,new T.PlaneGeometry(.68,.21),new T.MeshBasicMaterial({map:texture}),-.63,.93,1.87)
     rack.updateWorldMatrix(true,true)
     obstacles.push(new T.Box3().setFromObject(rack).expandByScalar(.12))
   }
-  screen.fillStyle='#101b22';screen.fillRect(0,0,512,256);screen.fillStyle='#d6f0ed';screen.font='28px monospace';screen.fillText('KOLONI BATARYASI',24,48);screen.fillText('YER ALTI BESLEME',24,100);displayTexture.needsUpdate=true;
+  screen.fillStyle='#101b22';screen.fillRect(0,0,512,256);screen.fillStyle='#d6f0ed';screen.font='28px monospace';screen.fillText("COLONY BATTERY",24,48);screen.fillText("UNDERGROUND SUPPLY",24,100);displayTexture.needsUpdate=true;
   const wiring=addPowerCables(T,farm,(x,z)=>terrainHeight(x0+x,z0+z)-level,{greenhouse:{x:26-x0,z:-11-z0},water:{x:64-x0,z:-26-z0},moxie:{x:19-x0,z:6-z0},habitat:{x:-x0,z:-z0}},tables,inverters);
   wiring.setClosed(true);
   farm.updateMatrixWorld(true);
@@ -174,7 +174,7 @@ export function addSolarFarm(T, scene, terrainHeight, obstacles) {
     groupDaylight=daylight;
     hmi.forEach((screen,i)=>{const index=i%5;const g=groups[index];if(!g)return;
       drawGroupHmi(screen.canvas.getContext('2d'),index,{...g,energy:g.stored,daylight},screen.detail);screen.texture.needsUpdate=true;});
-  },updateBatteryDisplay(battery){screen.fillStyle='#101b22';screen.fillRect(0,0,512,256);screen.fillStyle='#d6f0ed';screen.font='30px monospace';screen.fillText('KOLONI BATARYASI',24,48);screen.font='42px monospace';screen.fillText(battery.toFixed(1)+' oyun birimi',24,120);screen.font='24px monospace';screen.fillText('DC / AC - YER ALTI HAT',24,190);displayTexture.needsUpdate=true;}}
+  },updateBatteryDisplay(battery){screen.fillStyle='#101b22';screen.fillRect(0,0,512,256);screen.fillStyle='#d6f0ed';screen.font='30px monospace';screen.fillText("COLONY BATTERY",24,48);screen.font='42px monospace';screen.fillText(battery.toFixed(1)+" game units",24,120);screen.font='24px monospace';screen.fillText("DC / AC - UNDERGROUND LINE",24,190);displayTexture.needsUpdate=true;}}
 }
 
 // Host optimisation (Emre/Claude): the farm is static, so the ~390 meshes above (42 tables × back,

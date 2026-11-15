@@ -35,12 +35,12 @@ it('runs a six-second presentation independently of frozen mission time, pauses,
   clock.update('PRELAUNCH',1/60);expect(clock.elapsed).toBeNull();expect(clock.complete).toBe(false);
 });
 
-it('announces sim events and landing milestones in Turkish', () => {
+it('announces sim events and landing milestones in English', () => {
   const t={phase:'EDL',missionTime:100,altitude:15000,events:[{type:'HEATSHIELD_JETTISON',time:100}]};
-  expect(landingCallout(t)).toContain('Isı kalkanı ayrıldı');
+  expect(landingCallout(t)).toContain("Heat shield jettisoned");
   expect(landingCallout({...t,altitude:999,events:[{type:'LEGS_DEPLOYED',time:100}]})).toContain('1000 m');
-  expect(landingCallout({...t,altitude:900,missionTime:104,events:[{type:'LEGS_DEPLOYED',time:100}]})).toContain('Bacaklar açıldı');
-  expect(landingCallout({...t,altitude:20})).toContain('Yüzey tozu');
+  expect(landingCallout({...t,altitude:900,missionTime:104,events:[{type:'LEGS_DEPLOYED',time:100}]})).toContain("Landing gear deployed");
+  expect(landingCallout({...t,altitude:20})).toContain("Surface dust");
   expect(landingCallout({...t,phase:'LANDED',touchdownSpeed:1.5})).toBe('');
   expect(landingCallout({...t,phase:'ASCENT'})).toBe('');
 });

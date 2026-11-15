@@ -21,11 +21,11 @@ it('projects the actual attached stages through separation, orbit and lander han
 });
 
 it('formats only physically meaningful apsides and handles open trajectories',()=>{
-  expect(apsisReadout(-6369000,.99,'peri')).toEqual({value:'—',unit:'yörünge altı'});
-  expect(apsisReadout(-1,1.2,'apo')).toEqual({value:'—',unit:'açık yörünge'});
+  expect(apsisReadout(-6369000,.99,'peri')).toEqual({value:'—',unit:"suborbital"});
+  expect(apsisReadout(-1,1.2,'apo')).toEqual({value:'—',unit:"open trajectory"});
   expect(apsisReadout(Infinity,1,'apo').value).toBe('—');
   expect(apsisReadout(NaN,0,'peri').unit).toBe('');
-  expect(apsisReadout(185000,0,'peri')).toEqual({value:'185,0',unit:'km'});
+  expect(apsisReadout(185000,0,'peri')).toEqual({value:'185.0',unit:'km'});
 });
 
 it('wrist resources and cabin power come from independent telemetry snapshots',()=>{
@@ -36,5 +36,5 @@ it('wrist resources and cabin power come from independent telemetry snapshots',(
   for(const resource of ['oxygen','water','food'])expect(resourceDays(t,resource)).toBeCloseTo(320);
   mission.launch();mission.step(.02);
   expect(resourceDays(mission.getTelemetry(),'oxygen')).toBeCloseTo(320-.02/DAY,10);
-  expect(nextEvent({...t,countdown:{running:false}})).toBe('Geri sayımı başlat');
+  expect(nextEvent({...t,countdown:{running:false}})).toBe("Start countdown");
 });

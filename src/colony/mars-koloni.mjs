@@ -2,18 +2,18 @@ import { rates } from "./mars-gorev-plani.mjs"
 
 // Colony resources are person-sol equivalents. Equipment values model game behavior.
 export const modules = {
-  habitat: { name: "Yaşam modülü", detail: "Yaşam alanı · 2 enerji" },
-  solarPanel: { name: "Güneş paneli", detail: "Normalde 12, fırtınada 4 enerji" },
-  battery: { name: "Batarya", detail: "26 enerjiye kadar depolar" },
-  oxygenUnit: { name: "Oksijen ünitesi", detail: "Görev planında su elektroliziyle oksijen üretir." },
-  airScrubber: { name: "CO₂ tutucu", detail: "Kabin havasından karbondioksiti ayırır." },
-  waterRecycler: { name: "Su geri dönüşümü", detail: "Görev planında kullanılmış suyu geri kazanır." },
-  greenhouse: { name: "Sera", detail: "Görev planında tarım kabinlerinin ışık ve iklimini sağlar." },
-  potatoPod: { name: "Patates kabini", detail: "Kapalı tarım · 2 üretim solu" },
-  beanPod: { name: "Fasulye kabini", detail: "Kapalı tarım · 2 üretim solu" },
-  treePod: { name: "Bodur elma kabini", detail: "Kapalı tarım · 3 üretim solu" },
+  habitat: { name: "Habitat module", detail: "Habitat · 2 energy" },
+  solarPanel: { name: "Solar panel", detail: "12 energy normally, 4 in storms" },
+  battery: { name: "Battery", detail: "Stores up to 26 energy" },
+  oxygenUnit: { name: "Oxygen unit", detail: "Generates oxygen by water electrolysis in the mission plan." },
+  airScrubber: { name: "CO₂ scrubber", detail: "Removes carbon dioxide from cabin air." },
+  waterRecycler: { name: "Water recycling", detail: "Recovers used water in the mission plan." },
+  greenhouse: { name: "Greenhouse", detail: "Provides crop pod lighting and climate control in the mission plan." },
+  potatoPod: { name: "Potato pod", detail: "Enclosed farming · 2 production sols" },
+  beanPod: { name: "Bean pod", detail: "Enclosed farming · 2 production sols" },
+  treePod: { name: "Dwarf apple pod", detail: "Enclosed farming · 3 production sols" },
 }
-export const roles = { construction: "İnşaat", maintenance: "Bakım", production: "Üretim" }
+export const roles = { construction: "Construction", maintenance: "Maintenance", production: "Production" }
 export const exampleLanding = {
   crew: [1, 2, 3].map(index => ({ id: "astronaut-" + index, health: 100 })),
   supplies: { food: 12, water: 12, oxygen: 12, spareParts: 1 },
@@ -38,7 +38,7 @@ export const footprints = {
 }
 export const roofSize = { x: 1.7, z: 1.7 }
 const resources = ["water", "oxygen", "food"]
-const labels = { water: "Su", oxygen: "Oksijen", food: "Yiyecek", cleanAir: "CO₂ giderimi" }
+const labels = { water: "Water", oxygen: "Oxygen", food: "Food", cleanAir: "CO₂ removal" }
 const producer = { water: "waterRecycler", oxygen: "oxygenUnit", food: "greenhouse" }
 const blockedCells = new Set(["0:0", "1:0", "5:1", "0:4", "4:5", "5:5"])
 
@@ -51,7 +51,7 @@ export function createColony(landing) {
       typeof landing.landingSite !== "string" ||
       ![landing.surfaceEnergy, ...[...resources, "spareParts"].map(key => landing.supplies?.[key])]
         .every(value => Number.isFinite(value) && value >= 0)) {
-    throw new TypeError("Ortak iniş verisi geçersiz.")
+    throw new TypeError("Invalid shared landing data.")
   }
   const seen = new Map()
   const inventory = landing.modules.map(type => {
@@ -81,8 +81,8 @@ export function worldPlacement(item) {
 
 function legacyPlacementError(state, type, x, z) {
   if (![x, z].every(value => Number.isInteger(value) && value >= 0 && value < gridSize) ||
-      blockedCells.has(x + ":" + z)) return "Bu konuma modül kurulamaz."
-  if (state.placed.some(item => item.x === x && item.z === z)) return "Bu hücre dolu."
+      blockedCells.has(x + ":" + z)) return "Cannot build a module here."
+  if (state.placed.some(item => item.x === x && item.z === z)) return "This cell is occupied."
   return surfaceError({ placed: state.placed.filter(item => item.position) }, type, worldPlacement({ x, z }))
 }
 
@@ -90,14 +90,14 @@ function surfaceError(state, type, position) {
   const { x, z, supportId } = position
   const size = footprints[type]
   if (![x, z].every(Number.isFinite) || Math.abs(x) + size.x > siteRadius || Math.abs(z) + size.z > siteRadius) {
-    return "Modülün tamamını arazi sınırları içine getir."
+    return "Move the whole module within the terrain boundary."
   }
   if (supportId != null) {
     const base = state.placed.find(item => item.id === supportId)
-    if (base?.type !== "habitat" || type !== "solarPanel") return "Bu çatı güneş paneli için ayrılmıştır."
+    if (base?.type !== "habitat" || type !== "solarPanel") return "This roof is reserved for solar panels."
     const center = worldPlacement(base)
     if (Math.abs(x - center.x) + size.x > roofSize.x || Math.abs(z - center.z) + size.z > roofSize.z) {
-      return "Panelin tamamını çatı montaj alanına getir."
+      return "Move the whole panel into the roof mounting area."
     }
   }
   for (const item of state.placed) {
@@ -105,18 +105,18 @@ function surfaceError(state, type, position) {
     if ((other.supportId ?? null) !== (supportId ?? null)) continue
     const footprint = footprints[item.type]
     if (Math.abs(x - other.x) < size.x + footprint.x && Math.abs(z - other.z) < size.z + footprint.z) {
-      return "Bu konum bir modülle çakışıyor."
+      return "This position overlaps another module."
     }
   }
   return ""
 }
 
 export function placementError(state, id, position, z) {
-  if (state.sol >= missionLength) return "Görev sona erdi."
+  if (state.sol >= missionLength) return "The mission has ended."
   const module = state.inventory.find(item => item.id === id)
-  if (!module) return "Envanterden bir modül seç."
+  if (!module) return "Select an inventory module."
   if (typeof position === "number") return legacyPlacementError(state, module.type, position, z)
-  if (!position || typeof position !== "object") return "Geçerli bir yüzeye bak."
+  if (!position || typeof position !== "object") return "Look at a valid surface."
   return surfaceError(state, module.type, position)
 }
 
@@ -137,7 +137,7 @@ export function placeModule(state, id, position, z) {
 export function assignAstronaut(state, id, role) {
   if (state.sol >= missionLength || (role !== null && !Object.hasOwn(roles, role)) ||
       !state.crew.some(person => person.id === id && person.health > 0)) {
-    throw new RangeError("Astronot veya görev seçimi geçersiz.")
+    throw new RangeError("Invalid astronaut or mission selection.")
   }
   return { ...state, crew: state.crew.map(person => person.id === id ? { ...person, role } : person) }
 }
@@ -192,12 +192,12 @@ export function advanceSol(state, { prioritizeLifeSupport = true } = {}) {
   const systems = []
   if (operations) {
     needs.cleanAir = Boolean(shelter && active("airScrubber") && power(1))
-    if (needs.cleanAir) systems.push("CO₂ tutucu çalıştı")
+    if (needs.cleanAir) systems.push("CO₂ scrubber operated")
     if (shelter && active("waterRecycler") && wastewater > 0 && power(2)) {
       produced.water = Math.min(wastewater, 5) * .85
       wastewater -= produced.water / .85
       supplies.water += produced.water
-      systems.push("Atık sudan su geri kazanıldı")
+      systems.push("Water recovered from wastewater")
     }
     const waterPerOxygen = (9 / 8) * rates.oxygen / rates.water
     const demandWater = living.length * (1 + .16 * operations.driedMealShare)
@@ -205,10 +205,10 @@ export function advanceSol(state, { prioritizeLifeSupport = true } = {}) {
       produced.oxygen = living.length
       supplies.water -= produced.oxygen * waterPerOxygen
       supplies.oxygen += produced.oxygen
-      systems.push("Su elektrolizi oksijen sağladı")
+      systems.push("Water electrolysis supplied oxygen")
     }
     cropPower = Boolean(shelter && workers("production") && active("greenhouse") && power(2))
-    if (cropPower) systems.push("Sera ışığı ve iklim kontrolü açık")
+    if (cropPower) systems.push("Greenhouse lighting and climate control on")
   } else if (workers("production")) {
     for (const key of resources) {
       if (active(producer[key]) && power(2)) {
@@ -248,13 +248,13 @@ export function colonyReport(state) {
   const terminal = state.sol >= missionLength || crew.every(person => !person.alive)
   const lastThreeSols = state.timeline.slice(-3).map(({ sol, needs }) => ({ sol, needs: { ...needs } }))
   const reasons = []
-  if (!allAlive) reasons.push("Üç astronotun tamamı hayatta kalmadı.")
+  if (!allAlive) reasons.push("Not all three astronauts survived.")
   for (const { sol, needs } of lastThreeSols) {
     for (const [key, met] of Object.entries(needs)) {
-      if (!met) reasons.push("Sol " + sol + " · " + (labels[key] ?? "Enerjili yaşam modülü") + " ihtiyacı karşılanmadı.")
+      if (!met) reasons.push("Sol " + sol + " · " + (labels[key] ?? "Powered habitat module") + " need was not met.")
     }
   }
-  if (terminal && state.sol < missionLength) reasons.push("10 sol tamamlanamadı.")
+  if (terminal && state.sol < missionLength) reasons.push("Could not complete 10 sols.")
   return {
     status: terminal ? (reasons.length ? "failed" : "success") : "in-progress",
     completedSols: state.sol, crew, lastThreeSols, reasons,

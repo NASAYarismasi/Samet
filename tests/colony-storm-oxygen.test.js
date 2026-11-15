@@ -31,8 +31,8 @@ it('conserves MOXIE oxygen across production, tanks and habitat consumption',()=
   const air=createAirState();
   const supplied=supplyHabitatOxygen(air,1,{habitat:{duty:1}},grid,3);
   expect(grid.oxygenToHabitat).toBeCloseTo(.105);
-  expect(grid.oxygen+grid.oxygenToHabitat).toBeCloseTo(.2+.054);
-  expect(grid.oxygenProduced).toBeCloseTo(.054);
+  expect(grid.oxygen+grid.oxygenToHabitat).toBeCloseTo(.2+.162);
+  expect(grid.oxygenProduced).toBeCloseTo(.162);
   expect(supplied.oxygenKg).toBeCloseTo(air.oxygenKg);
   const before=grid.oxygen;
   supplyHabitatOxygen(supplied,1,{habitat:{duty:0}},grid,3);

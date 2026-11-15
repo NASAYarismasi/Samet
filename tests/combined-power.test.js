@@ -152,8 +152,8 @@ it('runs a manual sweep through the same animation and charges for it only once'
   power.update(initial,true);
   power.update({...initial,unixSeconds:1},true);
   const before=power.telemetry;
-  expect(power.startSweep()).toBe('Silecekler başlatıldı.');
-  expect(power.startSweep()).toBe('Silecekler zaten çalışıyor.');
+  expect(power.startSweep()).toBe("Wipers started.");
+  expect(power.startSweep()).toBe("Wipers already running.");
   expect(power.telemetry.state.loadEnergy.cleaning).toBe(.2);
   power.update({...initial,unixSeconds:31},true);
   expect(power.telemetry.strokes.some(value=>value>0)).toBe(true);

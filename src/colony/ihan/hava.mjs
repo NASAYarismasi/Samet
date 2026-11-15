@@ -9,7 +9,7 @@ export function createAirSystem(scene,{x=0,z=0,heightAt=()=>0}={}){
  // Three serviceable processing cassettes on a shared thermal skid.
  for(let i=0;i<3;i++){
   const xx=-2.55+i*2.55;k.box(2.12,2.35,1.75,xx,1.58,.28,'white',group,.12);k.panel(1.92,1.97,xx,1.6,1.18);k.box(1.65,.09,.07,xx,2.35,1.23,'orange');
-  const screen=k.label('3× MOXIE',1.55,.34,xx,2.07,1.24,group,'#abf4dc');screen.name='MOXIE bank '+(i+1)+' display';screen.castShadow=false;k.vents(xx,1.18,1.23,1.46,9);
+  const screen=k.label('9× MOXIE',1.55,.34,xx,2.07,1.24,group,'#abf4dc');screen.name='MOXIE bank '+(i+1)+' display';screen.castShadow=false;k.vents(xx,1.18,1.23,1.46,9);
   for(const dx of [-.68,.68]){k.box(.055,.35,.055,xx+dx,1.72,1.28,'steel');k.box(.16,.03,.06,xx+dx,1.88,1.28,'steel');}
   k.box(.58,.24,.04,xx,.86,1.24,'glass');for(let j=0;j<3;j++)k.cylinder(.025,.05,xx-.18+j*.18,.91,1.28,'lamp').rotation.x=Math.PI/2;
 

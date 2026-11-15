@@ -29,15 +29,15 @@ export function createOvaNavigation(world) {
     prompt(x,z,camera){
       if(activeLock){
         const {airlock}=activeLock;
-        if(airlock.phase==='ready'&&!aimed(camera,x,z,activeLock.x,airlock.targetZ))return 'İkinci kapıya bak';
+        if(airlock.phase==='ready'&&!aimed(camera,x,z,activeLock.x,airlock.targetZ))return "Look at the second door";
         return airlock.prompt;
       }
       if(inside){
-        const roomPrompt=world.labPrompt?.(x,z,camera)||world.privacyPrompt?.(x,z);
+        const roomPrompt=world.messagePrompt?.(x,z,camera)||world.labPrompt?.(x,z,camera)||world.privacyPrompt?.(x,z);
         if(roomPrompt)return roomPrompt;
       }
       const lock=nearest(x,z);
-      return lock&&aimed(camera,x,z,lock.x,inside?2.92:5.12)?'E · Hava kilidini aç':'';
+      return lock&&aimed(camera,x,z,lock.x,inside?2.92:5.12)?"E · Open airlock":'';
     },
     interact(x,z,camera){
       if(activeLock){
@@ -45,7 +45,7 @@ export function createOvaNavigation(world) {
         if(aimed(camera,x,z,activeLock.x,airlock.targetZ))airlock.release();
         return true;
       }
-      if(inside&&(world.startLab?.(x,z,camera)||world.togglePrivacy?.(x,z)))return true;
+      if(inside&&(world.openMessages?.(x,z,camera)||world.startLab?.(x,z,camera)||world.togglePrivacy?.(x,z)))return true;
       const lock=nearest(x,z);
       if(!lock||!aimed(camera,x,z,lock.x,inside?2.92:5.12))return false;
       activeLock=lock;lock.airlock.open(inside);
